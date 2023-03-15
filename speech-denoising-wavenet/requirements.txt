@@ -1,0 +1,9 @@
+numpy
+scipy
+theano
+keras
+tensorflow
+soundfile
+tqdm
+Cython
+h5py

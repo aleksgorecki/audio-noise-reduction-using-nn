@@ -1,0 +1,8 @@
+numpy
+scipy
+keras
+tensorflow
+soundfile
+tqdm
+Cython
+h5py
