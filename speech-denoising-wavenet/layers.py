@@ -64,3 +64,7 @@ class Slice(tf.keras.layers.Layer):
             else:
                 output_shape = output_shape + (dim_length,)
         return output_shape
+
+    def get_config(self):
+        config = super().get_config()
+        return config

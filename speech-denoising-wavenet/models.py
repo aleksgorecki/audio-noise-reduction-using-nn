@@ -169,10 +169,14 @@ class DenoisingWavenet():
         #                          callbacks=self.get_callbacks(),
         #                          verbose=self.verbosity,
         #                          initial_epoch=self.epoch_num)
+
+        batch_size = self.config["training"]["batch_size"]
+
         self.model.fit(train_set_generator,
                        epochs=num_epochs,
+                       steps_per_epoch=int(num_train_samples/batch_size),
                        validation_data=test_set_generator,
-                       validation_steps=num_test_samples,
+                       validation_steps=int(num_test_samples/batch_size),
                        callbacks=self.get_callbacks(),
                        verbose=self.verbosity,
                        initial_epoch=self.epoch_num)

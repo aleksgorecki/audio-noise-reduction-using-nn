@@ -27,18 +27,18 @@ def denoise_sample(model, input, condition_input, batch_size, output_filename_pr
             batch_size = num_fragments - batch_i*batch_size
 
         condition_batch = np.array([condition_input, ] * batch_size, dtype='uint8')
-        input_batch = np.zeros((batch_size, model.input_length))
+        input_batch = np.zeros((batch_size, int(model.input_length)))
 
         #Assemble batch
         for batch_fragment_i in range(0, batch_size):
 
             if fragment_i + model.target_field_length > num_output_samples:
                 remainder = input['noisy'][fragment_i:]
-                current_fragment = np.zeros((model.input_length,))
+                current_fragment = np.zeros((int(model.input_length),))
                 current_fragment[:remainder.shape[0]] = remainder
-                num_pad_values = model.input_length - remainder.shape[0]
+                num_pad_values = int(model.input_length - remainder.shape[0])
             else:
-                current_fragment = input['noisy'][fragment_i:fragment_i + model.input_length]
+                current_fragment = input['noisy'][fragment_i:fragment_i + int(model.input_length)]
 
             input_batch[batch_fragment_i, :] = current_fragment
             fragment_i += model.target_field_length

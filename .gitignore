@@ -1,3 +1,7 @@
 .venv
 venv
 .idea
+speech-denoising-wavenet/sessions/*
+speech-denoising-wavenet/data/*
+*/__pycache__
+*.pyc
