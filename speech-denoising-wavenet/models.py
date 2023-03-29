@@ -7,7 +7,7 @@ import numpy as np
 import layers
 import logging
 import tensorflow as tf
-
+import loss_plot_callback
 
 # Speech Denoising Wavenet Model
 
@@ -154,7 +154,8 @@ class DenoisingWavenet():
             tf.keras.callbacks.ModelCheckpoint(
                 os.path.join(self.checkpoints_path, 'checkpoint.{epoch:05d}-{val_loss:.3f}.hdf5')),
             tf.keras.callbacks.CSVLogger(os.path.join(self.config['training']['path'], self.history_filename),
-                                         append=True)
+                                         append=True),
+            loss_plot_callback.LossPlotCallback(os.path.join(self.config['training']['path'], 'loss_plots.png'))
         ]
 
     def fit_model(self, train_set_generator, num_train_samples, test_set_generator, num_test_samples, num_epochs):
