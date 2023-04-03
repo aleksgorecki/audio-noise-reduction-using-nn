@@ -8,8 +8,10 @@ import layers
 import logging
 import tensorflow as tf
 import loss_plot_callback
+import file_read_log_callback
 
 # Speech Denoising Wavenet Model
+
 
 class DenoisingWavenet():
 
@@ -21,29 +23,35 @@ class DenoisingWavenet():
 
         self.num_stacks = self.config['model']['num_stacks']
         if type(self.config['model']['dilations']) is int:
-            self.dilations = [2 ** i for i in range(0, self.config['model']['dilations'] + 1)]
+            self.dilations = [
+                2 ** i for i in range(0, self.config['model']['dilations'] + 1)]
         elif type(self.config['model']['dilations']) is list:
             self.dilations = self.config['model']['dilations']
 
         self.num_condition_classes = config['dataset']['num_condition_classes']
 
-        self.condition_input_length = self.get_condition_input_length(self.config['model']['condition_encoding'])
+        self.condition_input_length = self.get_condition_input_length(
+            self.config['model']['condition_encoding'])
         self.receptive_field_length = util.compute_receptive_field_length(config['model']['num_stacks'], self.dilations,
                                                                           config['model']['filters']['lengths']['res'],
                                                                           1)
 
         if input_length is not None:
             self.input_length = input_length
-            self.target_field_length = self.input_length - (self.receptive_field_length - 1)
+            self.target_field_length = self.input_length - \
+                (self.receptive_field_length - 1)
         if target_field_length is not None:
             self.target_field_length = target_field_length
-            self.input_length = self.receptive_field_length + (self.target_field_length - 1)
+            self.input_length = self.receptive_field_length + \
+                (self.target_field_length - 1)
         else:
             self.target_field_length = config['model']['target_field_length']
-            self.input_length = self.receptive_field_length + (self.target_field_length - 1)
+            self.input_length = self.receptive_field_length + \
+                (self.target_field_length - 1)
 
         self.target_padding = config['model']['target_padding']
-        self.padded_target_field_length = int(self.target_field_length + 2 * self.target_padding)
+        self.padded_target_field_length = int(
+            self.target_field_length + 2 * self.target_padding)
         self.half_target_field_length = int(self.target_field_length / 2)
         self.half_receptive_field_length = int(self.receptive_field_length / 2)
         self.num_residual_blocks = len(self.dilations) * self.num_stacks
@@ -69,10 +77,12 @@ class DenoisingWavenet():
 
     def setup_model(self, load_checkpoint=None, print_model_summary=False):
 
-        self.checkpoints_path = os.path.join(self.config['training']['path'], 'checkpoints')
-        self.samples_path = os.path.join(self.config['training']['path'], 'samples')
+        self.checkpoints_path = os.path.join(
+            self.config['training']['path'], 'checkpoints')
+        self.samples_path = os.path.join(
+            self.config['training']['path'], 'samples')
         self.history_filename = 'history_' + self.config['training']['path'][
-                                             self.config['training']['path'].rindex('/') + 1:] + '.csv'
+            self.config['training']['path'].rindex('/') + 1:] + '.csv'
 
         model = self.build_model()
 
@@ -83,9 +93,11 @@ class DenoisingWavenet():
                 self.epoch_num = 0
             else:
                 checkpoints = os.listdir(self.checkpoints_path)
-                checkpoints.sort(key=lambda x: os.stat(os.path.join(self.checkpoints_path, x)).st_mtime)
+                checkpoints.sort(key=lambda x: os.stat(
+                    os.path.join(self.checkpoints_path, x)).st_mtime)
                 last_checkpoint = checkpoints[-1]
-                last_checkpoint_path = os.path.join(self.checkpoints_path, last_checkpoint)
+                last_checkpoint_path = os.path.join(
+                    self.checkpoints_path, last_checkpoint)
                 self.epoch_num = int(last_checkpoint[11:16])
             print('Loading model from epoch: %d' % self.epoch_num)
             model.load_weights(last_checkpoint_path)
@@ -111,7 +123,8 @@ class DenoisingWavenet():
                       loss={'data_output_1': self.out_1_loss, 'data_output_2': self.out_2_loss}, metrics=self.metrics)
         self.config['model']['num_params'] = model.count_params()
 
-        config_path = os.path.join(self.config['training']['path'], 'config.json')
+        config_path = os.path.join(
+            self.config['training']['path'], 'config.json')
         if not os.path.exists(config_path):
             util.pretty_json_dump(self.config, config_path)
 
@@ -121,9 +134,9 @@ class DenoisingWavenet():
 
     def get_optimizer(self):
 
-        return tf.keras.optimizers.legacy.Adam(learning_rate=self.config['optimizer']['lr'],
-                                               decay=self.config['optimizer']['decay'],
-                                               epsilon=self.config['optimizer']['epsilon'])
+        return tf.keras.optimizers.Adam(learning_rate=self.config['optimizer']['lr'],
+                                        #    decay=self.config['optimizer']['decay'],
+                                        epsilon=self.config['optimizer']['epsilon'])
 
     def get_out_1_loss(self):
 
@@ -155,12 +168,15 @@ class DenoisingWavenet():
                 os.path.join(self.checkpoints_path, 'checkpoint.{epoch:05d}-{val_loss:.3f}.hdf5')),
             tf.keras.callbacks.CSVLogger(os.path.join(self.config['training']['path'], self.history_filename),
                                          append=True),
-            loss_plot_callback.LossPlotCallback(os.path.join(self.config['training']['path'], 'loss_plots.png'))
+            loss_plot_callback.LossPlotCallback(os.path.join(
+                self.config['training']['path'], 'loss_plots.png')),
+            file_read_log_callback.FileReadLogCallback()
         ]
 
     def fit_model(self, train_set_generator, num_train_samples, test_set_generator, num_test_samples, num_epochs):
 
-        print('Fitting model with %d training samples and %d test samples...' % (num_train_samples, num_test_samples))
+        print('Fitting model with %d training samples and %d test samples...' %
+              (num_train_samples, num_test_samples))
 
         # self.model.fit_generator(train_set_generator,
         #                          num_train_samples,
@@ -170,6 +186,9 @@ class DenoisingWavenet():
         #                          callbacks=self.get_callbacks(),
         #                          verbose=self.verbosity,
         #                          initial_epoch=self.epoch_num)
+
+        with open("./file_read_log.txt", "w") as frlf:
+            frlf.write("")
 
         batch_size = self.config["training"]["batch_size"]
 
@@ -231,7 +250,8 @@ class DenoisingWavenet():
 
         data_expanded = layers.AddSingletonDepth()(data_input)
         data_input_target_field_length = layers.Slice(
-            (slice(self.samples_of_interest_indices[0], self.samples_of_interest_indices[-1] + 1, 1), Ellipsis),
+            (slice(
+                self.samples_of_interest_indices[0], self.samples_of_interest_indices[-1] + 1, 1), Ellipsis),
             (self.padded_target_field_length, 1),
             name='data_input_target_field_length')(data_expanded)
 
@@ -275,7 +295,8 @@ class DenoisingWavenet():
         condition_out = tf.keras.layers.RepeatVector(self.padded_target_field_length,
                                                      name='penultimate_conv_1d_condition_repeat')(condition_out)
 
-        data_out = tf.keras.layers.Add(name='penultimate_conv_1d_condition_merge')([data_out, condition_out])
+        data_out = tf.keras.layers.Add(name='penultimate_conv_1d_condition_merge')([
+            data_out, condition_out])
 
         data_out = self.activation(data_out)
         data_out = tf.keras.layers.Convolution1D(self.config['model']['filters']['depths']['final'][1],
@@ -288,12 +309,14 @@ class DenoisingWavenet():
         condition_out = tf.keras.layers.RepeatVector(self.padded_target_field_length,
                                                      name='final_conv_1d_condition_repeat')(condition_out)
 
-        data_out = tf.keras.layers.Add(name='final_conv_1d_condition_merge')([data_out, condition_out])
+        data_out = tf.keras.layers.Add(name='final_conv_1d_condition_merge')([
+            data_out, condition_out])
 
         data_out = tf.keras.layers.Convolution1D(1, 1)(data_out)
 
         data_out_speech = data_out
-        data_out_noise = layers.Subtract(name='subtract_layer')([data_input_target_field_length, data_out_speech])
+        data_out_noise = layers.Subtract(name='subtract_layer')(
+            [data_input_target_field_length, data_out_speech])
 
         data_out_speech = tf.keras.layers.Lambda(lambda x: tf.keras.backend.squeeze(x, 2),
                                                  output_shape=lambda shape: (shape[0], shape[1]), name='data_output_1')(
@@ -327,19 +350,23 @@ class DenoisingWavenet():
                                                  activation=None)(data_x)
 
         data_out_1 = layers.Slice(
-            (Ellipsis, slice(0, self.config['model']['filters']['depths']['res'])),
-            (self.input_length, self.config['model']['filters']['depths']['res']),
+            (Ellipsis, slice(
+                0, self.config['model']['filters']['depths']['res'])),
+            (self.input_length, self.config['model']
+             ['filters']['depths']['res']),
             name='res_%d_data_slice_1_d%d_s%d' % (self.num_residual_blocks, dilation, stack_i))(data_out)
 
         data_out_2 = layers.Slice(
             (Ellipsis, slice(self.config['model']['filters']['depths']['res'],
                              2 * self.config['model']['filters']['depths']['res'])),
-            (self.input_length, self.config['model']['filters']['depths']['res']),
+            (self.input_length, self.config['model']
+             ['filters']['depths']['res']),
             name='res_%d_data_slice_2_d%d_s%d' % (self.num_residual_blocks, dilation, stack_i))(data_out)
 
         # Condition sub-block
         condition_out = tf.keras.layers.Dense(2 * self.config['model']['filters']['depths']['res'],
-                                              name='res_%d_dense_condition_%d_s%d' % (res_block_i, layer_i, stack_i),
+                                              name='res_%d_dense_condition_%d_s%d' % (
+                                                  res_block_i, layer_i, stack_i),
                                               use_bias=False)(condition_x)
 
         condition_out = tf.keras.layers.Reshape((self.config['model']['filters']['depths']['res'], 2),
@@ -363,8 +390,8 @@ class DenoisingWavenet():
 
         data_out_1 = tf.keras.layers.Add(name='res_%d_merge_1_d%d_s%d' %
                                               (res_block_i, dilation, stack_i))([data_out_1, condition_out_1])
-        data_out_2 = tf.keras.layers.Add(name='res_%d_merge_2_d%d_s%d' % (res_block_i, dilation, stack_i)) \
-            ([data_out_2, condition_out_2])
+        data_out_2 = tf.keras.layers.Add(name='res_%d_merge_2_d%d_s%d' % (
+            res_block_i, dilation, stack_i))([data_out_2, condition_out_2])
 
         tanh_out = tf.keras.layers.Activation('tanh')(data_out_1)
         sigm_out = tf.keras.layers.Activation('sigmoid')(data_out_2)
@@ -373,22 +400,26 @@ class DenoisingWavenet():
             [tanh_out, sigm_out])
 
         data_x = tf.keras.layers.Convolution1D(
-            self.config['model']['filters']['depths']['res'] + self.config['model']['filters']['depths']['skip'], 1,
+            self.config['model']['filters']['depths']['res'] +
+            self.config['model']['filters']['depths']['skip'], 1,
             padding='same', use_bias=False)(data_x)
 
         res_x = layers.Slice((Ellipsis, slice(0, self.config['model']['filters']['depths']['res'])),
-                             (self.input_length, self.config['model']['filters']['depths']['res']),
+                             (self.input_length,
+                              self.config['model']['filters']['depths']['res']),
                              name='res_%d_data_slice_3_d%d_s%d' % (res_block_i, dilation, stack_i))(data_x)
 
         skip_x = layers.Slice((Ellipsis, slice(self.config['model']['filters']['depths']['res'],
                                                self.config['model']['filters']['depths']['res'] +
                                                self.config['model']['filters']['depths']['skip'])),
-                              (self.input_length, self.config['model']['filters']['depths']['skip']),
+                              (self.input_length,
+                               self.config['model']['filters']['depths']['skip']),
                               name='res_%d_data_slice_4_d%d_s%d' % (res_block_i, dilation, stack_i))(data_x)
 
         skip_x = layers.Slice((slice(self.samples_of_interest_indices[0], self.samples_of_interest_indices[-1] + 1, 1),
                                Ellipsis),
-                              (self.padded_target_field_length, self.config['model']['filters']['depths']['skip']),
+                              (self.padded_target_field_length,
+                               self.config['model']['filters']['depths']['skip']),
                               name='res_%d_keep_samples_of_interest_d%d_s%d' % (res_block_i, dilation, stack_i))(skip_x)
 
         res_x = tf.keras.layers.Add()([original_x, res_x])

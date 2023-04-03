@@ -57,9 +57,9 @@
             }
         },
         "num_epochs": 250,
-        "num_test_samples": 100,
-        "num_train_samples": 1000,
-        "path": "sessions/006",
+        "num_test_samples": 824,
+        "num_train_samples": 11572,
+        "path": "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/sessions/newa_adam_full_dataset",
         "verbosity": 1
     }
 }
