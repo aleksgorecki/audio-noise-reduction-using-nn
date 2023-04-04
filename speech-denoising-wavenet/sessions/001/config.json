@@ -15,13 +15,19 @@
         "filters": {
             "lengths": {
                 "res": 3,
-                "final": [3, 3],
+                "final": [
+                    3,
+                    3
+                ],
                 "skip": 1
             },
             "depths": {
                 "res": 128,
                 "skip": 128,
-                "final": [2048, 256]
+                "final": [
+                    2048,
+                    256
+                ]
             }
         },
         "num_params": 6342657,

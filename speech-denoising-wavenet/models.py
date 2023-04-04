@@ -134,9 +134,9 @@ class DenoisingWavenet():
 
     def get_optimizer(self):
 
-        return tf.keras.optimizers.Adam(learning_rate=self.config['optimizer']['lr'],
-                                        #    decay=self.config['optimizer']['decay'],
-                                        epsilon=self.config['optimizer']['epsilon'])
+        return tf.keras.optimizers.legacy.Adam(learning_rate=self.config['optimizer']['lr'],
+                                               decay=self.config['optimizer']['decay'],
+                                               epsilon=self.config['optimizer']['epsilon'])
 
     def get_out_1_loss(self):
 

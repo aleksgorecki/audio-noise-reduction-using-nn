@@ -4,7 +4,7 @@
         "in_memory_percentage": 1,
         "noise_only_percent": 0.1,
         "num_condition_classes": 29,
-        "path": "data/NSDTSEA/",
+        "path": "data/gaussian_NSDTSEA/",
         "regain": 0.06,
         "sample_rate": 16000,
         "type": "nsdtsea"
@@ -43,23 +43,23 @@
     },
     "training": {
         "batch_size": 10,
-        "early_stopping_patience": 32,
+        "early_stopping_patience": 16,
         "loss": {
             "out_1": {
                 "l1": 1,
-                "l2": 0,
+                "l2": 1,
                 "weight": 1
             },
             "out_2": {
                 "l1": 1,
-                "l2": 0,
+                "l2": 1,
                 "weight": 1
             }
         },
         "num_epochs": 250,
-        "num_test_samples": 824,
-        "num_train_samples": 11572,
-        "path": "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/sessions/newa_adam_full_dataset",
+        "num_test_samples": 100,
+        "num_train_samples": 1000,
+        "path": "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/sessions/default_gaussian_new_dataset",
         "verbosity": 1
     }
 }
