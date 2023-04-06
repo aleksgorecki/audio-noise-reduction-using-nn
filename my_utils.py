@@ -12,24 +12,23 @@ import random
 import librosa
 import pathlib
 
+
 def apply_wiener_filter_to_file(input_file: str, output_file: str) -> None:
     audio_tuple = librosa.core.load(path=input_file, sr=None)
     filtered = wiener(audio_tuple[0])
-    sf.write(output_file, data=filtered,
-             format='WAV', samplerate=audio_tuple[1])
+    sf.write(output_file, data=filtered, format='WAV', samplerate=int(audio_tuple[1]))
 
 
 def apply_wiener_filter_to_dir(input_dir: str, output_dir: str) -> None:
     files = os.listdir(input_dir)
     os.makedirs(output_dir, exist_ok=True)
     for af in files:
-        output_name = (pathlib.Path(af).stem) + '.wav'
+        output_name = pathlib.Path(af).stem + '.wav'
         apply_wiener_filter_to_file(
             f"{input_dir}/{af}", output_file=f"{output_dir}/{output_name}")
 
 
 def plot_wavenet_history(history_csv_path: str):
-
     pass
 
 
@@ -60,7 +59,6 @@ def parse_file_read_log(log_path: str):
             (i.strip('\n'), train_epochs[0].count(i)) for i in train_epochs[0])
         # for key in result.keys():
         #     print(f"{str(key)}: {str(result[key])}")
-        occurences = []
         keys2 = dict((i.strip('\n'), train_epochs[1].count(
             i)) for i in train_epochs[1]).keys()
         for key in result.keys():
@@ -84,9 +82,30 @@ def normalize(x):
     return x / max_peak
 
 
-def create_white_noise_dataset(vctk_corpus_path: str, sn_ratios: List[float], speakers: List[str], original_clips_per_speaker: int, output_dir_path: str, setname: str) -> None:
+def pink_noise(length):
+    white = np.fft.rfft(np.random.randn(length))
+    f = np.fft.rfftfreq(length)
+    S = 1 / np.where(f == 0, float('inf'), np.sqrt(f))
+    S = S / np.sqrt(np.mean(S ** 2))
+    return np.fft.irfft(white * S, length)
+
+
+def brown_noise(length):
+    white = np.fft.rfft(np.random.randn(length))
+    f = np.fft.rfftfreq(length)
+    S = 1 / np.where(f == 0, float('inf'), f)
+    S = S / np.sqrt(np.mean(S ** 2))
+    return np.fft.irfft(white * S, length)
+
+
+def low_pass_filter():
+    pass
+
+
+def create_white_noise_dataset(vctk_corpus_path: str, sn_ratios: List[float], speakers: List[str],
+                               original_clips_per_speaker: int, output_dir_path: str, setname: str) -> None:
     signal = []
-    signal_power = np.abs(signal)**2
+    signal_power = np.abs(signal) ** 2
     os.makedirs(f"{output_dir_path}/noisy_{setname}_wav", exist_ok=True)
     os.makedirs(f"{output_dir_path}/clean_{setname}_wav", exist_ok=True)
     vctk_corpus_path = os.path.join(vctk_corpus_path, "wav48_silence_trimmed")
@@ -97,9 +116,9 @@ def create_white_noise_dataset(vctk_corpus_path: str, sn_ratios: List[float], sp
         files_to_use = speaker_files[0:original_clips_per_speaker - 1]
         for file in files_to_use:
             signal = librosa.load(file, sr=16000)
-            signal_power = np.mean(signal[0])**2
             for snr in sn_ratios:
-                noise = np.random.normal(0, 1, len(signal[0]))
+                # noise = np.random.normal(0, 1, len(signal[0]))
+                noise = brown_noise(len(signal[0]))
 
                 signal_energy = np.mean(signal[0] ** 2)
                 noise_energy = np.mean(noise ** 2)
@@ -112,21 +131,23 @@ def create_white_noise_dataset(vctk_corpus_path: str, sn_ratios: List[float], sp
                 new_name = pathlib.Path(file).stem + '.wav'
                 save_path = os.path.join(f"{output_dir_path}/noisy_{setname}_wav", new_name)
                 sf.write(save_path, data=generated, samplerate=16000, format='WAV')
-                sf.write(os.path.join(f"{output_dir_path}/clean_{setname}_wav", new_name), data=signal[0], samplerate=16000, format='WAV')
-
+                sf.write(os.path.join(f"{output_dir_path}/clean_{setname}_wav", new_name), data=signal[0],
+                         samplerate=16000, format='WAV')
 
 
 if __name__ == "__main__":
-    # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
-    # parse_file_read_log(
-    #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/file_read_log.txt")
+    # # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
+    # # parse_file_read_log(
+    # #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/file_read_log.txt")
     create_white_noise_dataset("/home/aleks/magister/datasets/VCTK-Corpus-0.92", sn_ratios=[10000, 15, 10, 5, 0],
-                               speakers=os.listdir("/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[0:30],
+                               speakers=os.listdir(
+                                   "/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[0:30],
                                original_clips_per_speaker=35,
-                               output_dir_path="/home/aleks/magister/datasets/gaussian_NSDTSEA",
+                               output_dir_path="/home/aleks/magister/datasets/brown_NSDTSEA",
                                setname="trainset")
     create_white_noise_dataset("/home/aleks/magister/datasets/VCTK-Corpus-0.92", sn_ratios=[60, 17.5, 12.5, 7.5, 2.5],
-                               speakers=os.listdir("/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[30:33],
+                               speakers=os.listdir(
+                                   "/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[30:33],
                                original_clips_per_speaker=40,
-                               output_dir_path="/home/aleks/magister/datasets/gaussian_NSDTSEA",
+                               output_dir_path="/home/aleks/magister/datasets/brown_NSDTSEA",
                                setname="testset")

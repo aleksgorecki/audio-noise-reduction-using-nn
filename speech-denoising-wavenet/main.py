@@ -11,7 +11,6 @@ import datasets
 import util
 import denoise
 
-
 import tensorflow as tf
 
 
@@ -44,7 +43,6 @@ def get_command_line_arguments():
     parser.add_option('--clean_input_path', dest='clean_input_path')
     parser.add_option('--target_field_length', dest='target_field_length')
 
-
     (options, args) = parser.parse_args()
 
     return options
@@ -62,7 +60,6 @@ def load_config(config_filepath):
 
 
 def get_dataset(config, model):
-
     if config['dataset']['type'] == 'vctk+demand':
         return datasets.VCTKAndDEMANDDataset(config, model).load_dataset()
     elif config['dataset']['type'] == 'nsdtsea':
@@ -70,9 +67,9 @@ def get_dataset(config, model):
 
 
 def training(config, cla):
-
     # Instantiate Model
-    model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint, print_model_summary=cla.print_model_summary)
+    model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
+                                    print_model_summary=cla.print_model_summary)
     dataset = get_dataset(config, model)
 
     num_train_samples = config['training']['num_train_samples']
@@ -81,7 +78,7 @@ def training(config, cla):
     test_set_generator = dataset.get_random_batch_generator('test')
 
     model.fit_model(train_set_generator, num_train_samples, test_set_generator, num_test_samples,
-                          config['training']['num_epochs'])
+                    config['training']['num_epochs'])
 
 
 def get_valid_output_folder_path(outputs_folder_path):
@@ -97,7 +94,6 @@ def get_valid_output_folder_path(outputs_folder_path):
 
 
 def inference(config, cla):
-
     if cla.batch_size is not None:
         batch_size = int(cla.batch_size)
     else:
@@ -108,7 +104,8 @@ def inference(config, cla):
 
     if not bool(cla.one_shot):
         model = models.DenoisingWavenet(config, target_field_length=cla.target_field_length,
-                                        load_checkpoint=cla.load_checkpoint, print_model_summary=cla.print_model_summary)
+                                        load_checkpoint=cla.load_checkpoint,
+                                        print_model_summary=cla.print_model_summary)
         print('Performing inference..')
     else:
         print('Performing one-shot inference..')
@@ -116,7 +113,7 @@ def inference(config, cla):
     samples_folder_path = os.path.join(config['training']['path'], 'samples')
     output_folder_path = get_valid_output_folder_path(samples_folder_path)
 
-    #If input_path is a single wav file, then set filenames to single element with wav filename
+    # If input_path is a single wav file, then set filenames to single element with wav filename
     if cla.noisy_input_path.endswith('.wav'):
         filenames = [cla.noisy_input_path.rsplit('/', 1)[-1]]
         cla.noisy_input_path = cla.noisy_input_path.rsplit('/', 1)[0] + '/'
@@ -149,16 +146,23 @@ def inference(config, cla):
                 input['noisy'] = input['noisy'][:-1]
                 if input['clean'] is not None:
                     input['clean'] = input['clean'][:-1]
-            model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint, input_length=len(input['noisy']), print_model_summary=cla.print_model_summary)
+            model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
+                                            input_length=len(input['noisy']),
+                                            print_model_summary=cla.print_model_summary)
 
         print("Denoising: " + filename)
         denoise.denoise_sample(model, input, condition_input, batch_size, output_filename_prefix,
-                                            config['dataset']['sample_rate'], output_folder_path)
+                               config['dataset']['sample_rate'], output_folder_path)
 
 
 def main():
-    physical_devices = tf.config.experimental.list_physical_devices('GPU')
-    print(physical_devices)
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+        except RuntimeError as e:
+            print(e)
 
     set_system_settings()
     cla = get_command_line_arguments()

@@ -7,3 +7,5 @@ soundfile
 tqdm
 Cython
 h5py
+librosa
+matplotlib
