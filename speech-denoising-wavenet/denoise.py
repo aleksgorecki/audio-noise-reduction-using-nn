@@ -12,7 +12,9 @@ def denoise_sample(model, input, condition_input, batch_size, output_filename_pr
 
     if len(input['noisy']) < model.receptive_field_length:
         raise ValueError('Input is not long enough to be used with this model.')
-
+    
+    padding_length = int(model.receptive_field_length / 2)
+    input['noisy'] = np.concatenate((input['noisy'], np.zeros(padding_length, dtype=input['noisy'].dtype)))
     num_output_samples = input['noisy'].shape[0] - (model.receptive_field_length - 1)
     num_fragments = int(np.ceil(num_output_samples / model.target_field_length))
     num_batches = int(np.ceil(num_fragments / batch_size))

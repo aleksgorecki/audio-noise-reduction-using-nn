@@ -74,8 +74,13 @@ def training(config, cla):
 
     num_train_samples = config['training']['num_train_samples']
     num_test_samples = config['training']['num_test_samples']
-    train_set_generator = dataset.get_random_batch_generator('train')
-    test_set_generator = dataset.get_random_batch_generator('test')
+    if config.get('deterministic_gen') is not None and config['deterministic_gen'] is True:
+        train_set_generator = dataset.get_deterministic_batch_generator('train')
+        test_set_generator = dataset.get_deterministic_batch_generator('test')
+    else:
+        print("random")
+        train_set_generator = dataset.get_random_batch_generator('train')
+        test_set_generator = dataset.get_random_batch_generator('test')
 
     model.fit_model(train_set_generator, num_train_samples, test_set_generator, num_test_samples,
                     config['training']['num_epochs'])

@@ -10,6 +10,7 @@ import tensorflow as tf
 import loss_plot_callback
 import file_read_log_callback
 
+
 # Speech Denoising Wavenet Model
 
 
@@ -39,15 +40,15 @@ class DenoisingWavenet():
         if input_length is not None:
             self.input_length = input_length
             self.target_field_length = self.input_length - \
-                (self.receptive_field_length - 1)
+                                       (self.receptive_field_length - 1)
         if target_field_length is not None:
             self.target_field_length = target_field_length
             self.input_length = self.receptive_field_length + \
-                (self.target_field_length - 1)
+                                (self.target_field_length - 1)
         else:
             self.target_field_length = config['model']['target_field_length']
             self.input_length = self.receptive_field_length + \
-                (self.target_field_length - 1)
+                                (self.target_field_length - 1)
 
         self.target_padding = config['model']['target_padding']
         self.padded_target_field_length = int(
@@ -82,7 +83,7 @@ class DenoisingWavenet():
         self.samples_path = os.path.join(
             self.config['training']['path'], 'samples')
         self.history_filename = 'history_' + self.config['training']['path'][
-            self.config['training']['path'].rindex('/') + 1:] + '.csv'
+                                             self.config['training']['path'].rindex('/') + 1:] + '.csv'
 
         model = self.build_model()
 
@@ -143,7 +144,8 @@ class DenoisingWavenet():
         if self.config['training']['loss']['out_1']['weight'] == 0:
             return lambda y_true, y_pred: y_true * 0
 
-        return lambda y_true, y_pred: self.config['training']['loss']['out_1']['weight'] * util.l1_l2_loss(
+        return lambda y_true, y_pred: self.config['training']['loss']['out_1'][
+                                          'weight'] * util.l1_l2_combined_loss(
             y_true, y_pred, self.config['training']['loss']['out_1']['l1'],
             self.config['training']['loss']['out_1']['l2'])
 
@@ -152,7 +154,8 @@ class DenoisingWavenet():
         if self.config['training']['loss']['out_2']['weight'] == 0:
             return lambda y_true, y_pred: y_true * 0
 
-        return lambda y_true, y_pred: self.config['training']['loss']['out_2']['weight'] * util.l1_l2_loss(
+        return lambda y_true, y_pred: self.config['training']['loss']['out_2'][
+                                          'weight'] * util.l1_l2_combined_loss(
             y_true, y_pred, self.config['training']['loss']['out_2']['l1'],
             self.config['training']['loss']['out_2']['l2'])
 
@@ -163,14 +166,13 @@ class DenoisingWavenet():
                                                  cooldown=self.config['training']['early_stopping_patience'] / 4,
                                                  verbose=1),
             tf.keras.callbacks.EarlyStopping(patience=self.config['training']['early_stopping_patience'], verbose=1,
-                                             monitor='loss'),
+                                             monitor='val_loss'),
             tf.keras.callbacks.ModelCheckpoint(
                 os.path.join(self.checkpoints_path, 'checkpoint.{epoch:05d}-{val_loss:.3f}.hdf5')),
             tf.keras.callbacks.CSVLogger(os.path.join(self.config['training']['path'], self.history_filename),
                                          append=True),
             loss_plot_callback.LossPlotCallback(os.path.join(
                 self.config['training']['path'], 'loss_plots.png')),
-            file_read_log_callback.FileReadLogCallback()
         ]
 
     def fit_model(self, train_set_generator, num_train_samples, test_set_generator, num_test_samples, num_epochs):
@@ -194,9 +196,9 @@ class DenoisingWavenet():
 
         self.model.fit(train_set_generator,
                        epochs=num_epochs,
-                       steps_per_epoch=int(num_train_samples/batch_size),
+                       steps_per_epoch=int(num_train_samples / batch_size),
                        validation_data=test_set_generator,
-                       validation_steps=int(num_test_samples/batch_size),
+                       validation_steps=int(num_test_samples / batch_size),
                        callbacks=self.get_callbacks(),
                        verbose=self.verbosity,
                        initial_epoch=self.epoch_num)
@@ -353,14 +355,14 @@ class DenoisingWavenet():
             (Ellipsis, slice(
                 0, self.config['model']['filters']['depths']['res'])),
             (self.input_length, self.config['model']
-             ['filters']['depths']['res']),
+            ['filters']['depths']['res']),
             name='res_%d_data_slice_1_d%d_s%d' % (self.num_residual_blocks, dilation, stack_i))(data_out)
 
         data_out_2 = layers.Slice(
             (Ellipsis, slice(self.config['model']['filters']['depths']['res'],
                              2 * self.config['model']['filters']['depths']['res'])),
             (self.input_length, self.config['model']
-             ['filters']['depths']['res']),
+            ['filters']['depths']['res']),
             name='res_%d_data_slice_2_d%d_s%d' % (self.num_residual_blocks, dilation, stack_i))(data_out)
 
         # Condition sub-block

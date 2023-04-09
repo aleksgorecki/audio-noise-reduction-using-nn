@@ -9,13 +9,17 @@ import scipy.signal
 import scipy.stats
 import soundfile as sf
 import tensorflow as tf
+import tensorflow_io as tfio
+import time
+
+from fontTools.ttLib.tables._g_l_y_f import table__g_l_y_f
+
 
 def l1_l2_loss(y_true, y_pred, l1_weight, l2_weight):
-
     loss = 0
 
     if l1_weight != 0:
-        loss += l1_weight*tf.keras.losses.mean_absolute_error(y_true, y_pred)
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
 
     if l2_weight != 0:
         loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
@@ -23,20 +27,117 @@ def l1_l2_loss(y_true, y_pred, l1_weight, l2_weight):
     return loss
 
 
-def compute_receptive_field_length(stacks, dilations, filter_length, target_field_length):
+def l1_l2_spectral_loss(y_true, y_pred, l1_weight, l2_weight):
+    loss = 0
+    y_true_fft = tf.signal.rfft(y_true)
+    y_pred_fft = tf.signal.rfft(y_pred)
 
-    half_filter_length = (filter_length-1)/2
+    if l1_weight != 0:
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
+
+    if l2_weight != 0:
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true_fft, y_pred_fft)
+
+    return loss
+
+
+def l1_l2_combined_loss(y_true, y_pred, l1_weight, l2_weight):
+    loss = 0
+    y_true_fft = tf.abs(tf.signal.rfft(y_true))
+    y_pred_fft = tf.abs(tf.signal.rfft(y_pred))
+
+    if l1_weight != 0:
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
+
+    if l2_weight != 0:
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true_fft, y_pred_fft)
+
+    return loss
+
+
+def l1_l2_power_loss(y_true, y_pred, l1_weight, l2_weight):
+    loss = 0
+
+    if l1_weight != 0:
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+
+    if l2_weight != 0:
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
+        loss += l2_weight * tf.keras.losses.mean_squared_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+
+    return loss
+
+
+def l1_l2_combined_power_loss(y_true, y_pred, l1_weight, l2_weight):
+    loss = 0
+    y_true_fft = tf.abs(tf.signal.rfft(y_true))
+    y_pred_fft = tf.abs(tf.signal.rfft(y_pred))
+
+    if l1_weight != 0:
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+
+    if l2_weight != 0:
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
+        loss += l2_weight * tf.keras.losses.mean_squared_error(y_true_fft, y_pred_fft)
+        loss += l2_weight * tf.keras.losses.mean_squared_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+
+    return loss
+
+
+def l1_l2_spectrogram_loss(y_true, y_pred, l1_weight, l2_weight):
+    loss = 0
+
+    spec_true = tfio.audio.spectrogram(y_true, nfft=len(y_true), window=512, stride=256)
+    spec_pred = tfio.audio.spectrogram(y_pred, nfft=len(y_pred), window=512, stride=256)
+
+    loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
+    # loss += tf.reduce_mean(tf.abs(tf.subtract(spec_true, spec_pred)))
+
+    # if l1_weight != 0:
+    #     tf.subtract
+    #     loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
+    #
+    # if l2_weight != 0:
+    #     loss += tf.keras.losses.mean_squared_error(spec_true, spec_pred)
+
+    return loss
+
+
+#
+# def sdr_loss(y_true, y_pred, l1_weight, l2_weight):
+#     y_pred_T = tf.transpose(y_pred)
+#     common_term = tf.norm(
+#
+#     )
+#     numerator = tf.norm(
+#         tf.divide(
+#
+#         )) ** 2
+#     si_sdr = 10 * tf.experimental.numpy.log10(
+#         tf.divide(
+#             tf.
+#         )
+#     )
+
+
+def compute_receptive_field_length(stacks, dilations, filter_length, target_field_length):
+    half_filter_length = (filter_length - 1) / 2
     length = 0
     for d in dilations:
-        length += d*half_filter_length
-    length = 2*length
+        length += d * half_filter_length
+    length = 2 * length
     length = stacks * length
     length += target_field_length
     return length
 
 
 def snr_db(rms_amplitude_A, rms_amplitude_B):
-    return 20.0*np.log10(rms_amplitude_A/rms_amplitude_B)
+    return 20.0 * np.log10(rms_amplitude_A / rms_amplitude_B)
 
 
 def wav_to_float(x):
@@ -135,30 +236,28 @@ def binary_encode(x, max_value):
 
 
 def get_condition_input_encode_func(representation):
-
-        if representation == 'binary':
-            return binary_encode
-        else:
-            return one_hot_encode
+    if representation == 'binary':
+        return binary_encode
+    else:
+        return one_hot_encode
 
 
 def ensure_keys_in_dict(keys, dictionary):
-
-    if all (key in dictionary for key in keys):
+    if all(key in dictionary for key in keys):
         return True
     return False
 
 
 def get_subdict_from_dict(keys, dictionary):
-
     return dict((k, dictionary[k]) for k in keys if k in dictionary)
 
-def pretty_json_dump(values, file_path=None):
 
+def pretty_json_dump(values, file_path=None):
     if file_path is None:
         print(json.dumps(values, sort_keys=True, indent=4, separators=(',', ': ')))
     else:
         json.dump(values, open(file_path, 'w'), sort_keys=True, indent=4, separators=(',', ': '))
+
 
 def read_wav(filename):
     # Reads in a wav audio file, takes the first channel, converts the signal to float64 representation
@@ -175,14 +274,12 @@ def read_wav(filename):
 
 
 def load_wav(wav_path, desired_sample_rate):
-
     sequence, sample_rate = read_wav(wav_path)
     sequence = ensure_sample_rate(sequence, desired_sample_rate, sample_rate)
     return sequence
 
 
 def write_wav(x, filename, sample_rate):
-
     if type(x) != np.ndarray:
         x = np.array(x)
 
@@ -233,11 +330,10 @@ def get_subsequence_with_speech_indices(full_sequence):
     onset_chunk_i = np.max((0, onset_chunk_i - num_pad_chunks))
     termination_chunk_i = np.min((len(chunks_energies), termination_chunk_i + num_pad_chunks))
 
-    return [onset_chunk_i*chunk_length, (termination_chunk_i+1)*chunk_length]
+    return [onset_chunk_i * chunk_length, (termination_chunk_i + 1) * chunk_length]
 
 
 def extract_subsequence_with_speech(full_sequence):
-
     indices = get_subsequence_with_speech_indices(full_sequence)
     return full_sequence[indices[0]:indices[1]]
 
