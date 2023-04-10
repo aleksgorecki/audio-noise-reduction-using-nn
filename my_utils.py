@@ -83,38 +83,6 @@ def normalize(x):
     return x / max_peak
 
 
-def pink_noise(length):
-    white = np.fft.rfft(np.random.randn(length))
-    f = np.fft.rfftfreq(length)
-    S = 1 / np.where(f == 0, float('inf'), np.sqrt(f))
-    S = S / np.sqrt(np.mean(S ** 2))
-    return np.fft.irfft(white * S, length)
-
-
-def red_noise(length):
-    white = np.fft.rfft(np.random.randn(length))
-    f = np.fft.rfftfreq(length)
-    S = 1 / np.where(f == 0, float('inf'), f)
-    S = S / np.sqrt(np.mean(S ** 2))
-    return np.fft.irfft(white * S, length)
-
-
-def blue_noise(length):
-    white = np.fft.rfft(np.random.randn(length))
-    f = np.fft.rfftfreq(length)
-    S = np.sqrt(f)
-    S = S / np.sqrt(np.mean(S ** 2))
-    return np.fft.irfft(white * S, length)
-
-
-def violet_noise(length):
-    white = np.fft.rfft(np.random.randn(length))
-    f = np.fft.rfftfreq(length)
-    S = f
-    S = S / np.sqrt(np.mean(S ** 2))
-    return np.fft.irfft(white * S, length)
-
-
 # def low_pass_filter(signal, cutoff_f, sr):
 #     cutoff_index = int(cutoff_f * len(signal) / sr)
 #     spectrum = np.fft.fft(signal)
@@ -166,10 +134,6 @@ def mix_with_snr(signal, noise, snr):
     return generated
 
 
-def white_noise(length):
-    return np.random.randn(length)
-
-
 def shrink_dataset(input_dir, new_sample_number, output_dir):
     all_files = os.listdir(input_dir)
     all_files = [os.path.join(input_dir, x) for x in all_files]
@@ -217,6 +181,7 @@ def eval_model_on_dir(config_path, checkpoint_path, input_dir):
 
 
 if __name__ == "__main__":
+    pass
     # # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
     # # parse_file_read_log(
     # #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/file_read_log.txt")
