@@ -10,3 +10,5 @@ pyqt5
 pyqt5-tools
 matplotlib
 librosa
+pypesq
+pystoi
