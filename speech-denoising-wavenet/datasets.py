@@ -220,6 +220,82 @@ class NSDTSEADataset():
             with open("./file_read_log.txt", "a") as frlf:
                 frlf.write("===============================\n")
 
+    def get_random_batch_generator_without_conditioning(self, set):
+
+        if set not in ['train', 'test']:
+            raise ValueError("Argument SET must be either 'train' or 'test'")
+
+        while True:
+            sample_indices = np.random.randint(
+                0, len(self.sequences[set]['clean']), self.batch_size)
+            batch_inputs = []
+            batch_outputs_1 = []
+            batch_outputs_2 = []
+
+            for i, sample_i in enumerate(sample_indices):
+
+                while True:
+
+                    speech = self.retrieve_sequence(set, 'clean', sample_i)
+                    noisy = self.retrieve_sequence(set, 'noisy', sample_i)
+                    noise = noisy - speech
+
+                    if self.extract_voice:
+                        speech = speech[self.voice_indices[set][sample_i]
+                                        [0]:self.voice_indices[set][sample_i][1]]
+
+                    speech_regained = speech * \
+                                      self.regain_factors[set][sample_i]
+                    noise_regained = noise * self.regain_factors[set][sample_i]
+
+                    if len(speech_regained) < self.model.input_length:
+                        sample_i = np.random.randint(
+                            0, len(self.sequences[set]['clean']))
+                    else:
+                        break
+
+                offset = np.squeeze(np.random.randint(
+                    0, len(speech_regained) - self.model.input_length, 1))
+
+                speech_fragment = speech_regained[int(offset):int(
+                    offset) + int(self.model.input_length)]
+                noise_fragment = noise_regained[int(offset):int(
+                    offset) + int(self.model.input_length)]
+
+                input = noise_fragment + speech_fragment
+                output_speech = speech_fragment
+                output_noise = noise_fragment
+
+                if self.noise_only_percent > 0:
+                    if np.random.uniform(0, 1) <= self.noise_only_percent:
+                        input = output_noise  # Noise only
+
+                        max_idx = int(len(self.silence[0]) - len(input))
+                        silence_start = np.random.randint(0, max_idx)
+                        if self.silence is not None:
+                            output_speech = self.silence[0][silence_start: silence_start + len(input)]
+                        else:
+                            output_speech = np.array(
+                                [0] * int(self.model.input_length))  # Silence
+
+                batch_inputs.append(input)
+                batch_outputs_1.append(output_speech)
+                batch_outputs_2.append(output_noise)
+
+            batch_inputs = np.array(batch_inputs, dtype='float32')
+            batch_outputs_1 = np.array(batch_outputs_1, dtype='float32')
+            batch_outputs_2 = np.array(batch_outputs_2, dtype='float32')
+            batch_outputs_1 = batch_outputs_1[:,
+                              self.model.get_padded_target_field_indices()]
+            batch_outputs_2 = batch_outputs_2[:,
+                              self.model.get_padded_target_field_indices()]
+
+            batch = {'data_input': batch_inputs}, {
+                'data_output_1': batch_outputs_1, 'data_output_2': batch_outputs_2}
+
+            yield batch
+
+
     def get_deterministic_batch_generator(self, set):
 
         if set not in ['train', 'test']:
