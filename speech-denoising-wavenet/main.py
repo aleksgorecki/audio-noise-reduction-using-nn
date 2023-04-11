@@ -7,6 +7,7 @@ import optparse
 import json
 import os
 import models
+import model_without_conditioning
 import datasets
 import util
 import denoise
@@ -68,7 +69,11 @@ def get_dataset(config, model):
 
 def training(config, cla):
     # Instantiate Model
-    model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
+    if config.get('no_conditioning') is True:
+        model = model_without_conditioning.DenoisingWavenetWithoutConditioning(config, load_checkpoint=cla.load_checkpoint,
+                                        print_model_summary=cla.print_model_summary)
+    else:
+        model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
                                     print_model_summary=cla.print_model_summary)
     dataset = get_dataset(config, model)
 
@@ -108,7 +113,12 @@ def inference(config, cla):
         cla.target_field_length = int(cla.target_field_length)
 
     if not bool(cla.one_shot):
-        model = models.DenoisingWavenet(config, target_field_length=cla.target_field_length,
+        if config.get('no_conditioning') is True:
+            model = model_without_conditioning.DenoisingWavenetWithoutConditioning(config, target_field_length=cla.target_field_length,
+                                        load_checkpoint=cla.load_checkpoint,
+                                        print_model_summary=cla.print_model_summary)
+        else:
+            model = models.DenoisingWavenet(config, target_field_length=cla.target_field_length,
                                         load_checkpoint=cla.load_checkpoint,
                                         print_model_summary=cla.print_model_summary)
         print('Performing inference..')
@@ -151,9 +161,15 @@ def inference(config, cla):
                 input['noisy'] = input['noisy'][:-1]
                 if input['clean'] is not None:
                     input['clean'] = input['clean'][:-1]
-            model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
+            if config.get('no_conditioning') is True:
+                model = model_without_conditioning.DenoisingWavenetWithoutConditioning(config, load_checkpoint=cla.load_checkpoint,
                                             input_length=len(input['noisy']),
                                             print_model_summary=cla.print_model_summary)
+            else:
+                model = models.DenoisingWavenet(config, load_checkpoint=cla.load_checkpoint,
+                                            input_length=len(input['noisy']),
+                                            print_model_summary=cla.print_model_summary)
+
 
         print("Denoising: " + filename)
         denoise.denoise_sample(model, input, condition_input, batch_size, output_filename_prefix,

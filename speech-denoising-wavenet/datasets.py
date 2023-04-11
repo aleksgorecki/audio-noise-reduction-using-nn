@@ -38,6 +38,11 @@ class NSDTSEADataset():
         except librosa.LibrosaError:
             self.silence = None
 
+        if config.get('no_conditioning') is True:
+            self.get_random_batch_generator = self.get_random_batch_generator_without_conditioning
+        else:
+            self.get_random_batch_generator = self.get_random_batch_generator_with_conditioning
+
     def load_dataset(self):
 
         print('Loading NSDTSEA dataset...')
@@ -124,7 +129,7 @@ class NSDTSEADataset():
 
         return np.array(sequence)
 
-    def get_random_batch_generator(self, set):
+    def get_random_batch_generator_with_conditioning(self, set):
 
         if set not in ['train', 'test']:
             raise ValueError("Argument SET must be either 'train' or 'test'")
