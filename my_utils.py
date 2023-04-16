@@ -182,9 +182,9 @@ def eval_model_on_dir(config_path, checkpoint_path, input_dir):
 
 if __name__ == "__main__":
     pass
-    # # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
+    # # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
     # # parse_file_read_log(
-    # #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech-denoising-wavenet/file_read_log.txt")
+    # #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/file_read_log.txt")
     # create_white_noise_dataset("/home/aleks/magister/datasets/VCTK-Corpus-0.92", sn_ratios=[10000, 50, 30, 20, 10],
     #                            speakers=os.listdir(
     #                                "/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[0:30],
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     #                            original_clips_per_speaker=30,
     #                            output_dir_path="/home/aleks/magister/datasets/lowpass_gaussian_NSDTSEA",
     #                            setname="testset")
-    # signal = librosa.load("speech-denoising-wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
+    # signal = librosa.load("speech_denoising_wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
     # noise = red_noise(len(signal[0]))
     # # plot_spectrum(noise)
     # output = mix_with_snr(signal, noise, 10)
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     # subsets = ['noisy_testset_wav']
     # for subset in subsets:
     #     shrink_dataset(f"../datasets/NSDTSEA/{subset}", 120, f"../datasets/NSDTSEA_shrink/{subset}")
-    # signal = librosa.load("speech-denoising-wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
+    # signal = librosa.load("speech_denoising_wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
     # noise = white_noise(len(signal[0]))
     # noise = butter_bandpass(noise, 2000, 4000, 16000, 5)
     # sf.write("./filtered", data=noise, samplerate=16000, format='WAV')

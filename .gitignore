@@ -1,7 +1,9 @@
 .venv
 venv
 .idea
-speech-denoising-wavenet/sessions/*
-speech-denoising-wavenet/data/*
+speech_denoising_wavenet/sessions/*
+speech_denoising_wavenet/data/*
+speech_denoising_wavenet/sessions/*
+speech_denoising_wavenet/data/*
 */__pycache__
 *.pyc
