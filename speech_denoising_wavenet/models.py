@@ -11,6 +11,7 @@ import loss_plot_callback
 import file_read_log_callback
 from my_loss_functions import *
 
+
 # Speech Denoising Wavenet Model
 
 
@@ -78,6 +79,8 @@ class DenoisingWavenet():
             self.build_model = self.build_model_without_conditioning
         else:
             self.build_model = self.build_model_with_conditioning
+
+        self.use_dropout = bool(config['model']['dropout']['use'])
 
         self.model = self.setup_model(load_checkpoint, print_model_summary)
 
@@ -149,21 +152,71 @@ class DenoisingWavenet():
         if self.config['training']['loss']['out_1']['weight'] == 0:
             return lambda y_true, y_pred: y_true * 0
 
+        spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss = self.prepare_additional_loss_functions("out_1")
+
         return lambda y_true, y_pred: self.config['training']['loss']['out_1'][
                                           'weight'] * util.l1_l2_combined_loss(
             y_true, y_pred, self.config['training']['loss']['out_1']['l1'],
-            self.config['training']['loss']['out_1']['l2']) + weighted_spectrogram_loss(y_true, y_pred, WEIGHTS)
+            self.config['training']['loss']['out_1']['l2']) + \
+                                      spec_loss(y_true, y_pred) + spec_conv_loss(y_true, y_pred) + \
+                                      weighted_spec_loss(y_true, y_pred) + rms_loss(y_true, y_pred)
 
     def get_out_2_loss(self):
 
         if self.config['training']['loss']['out_2']['weight'] == 0:
             return lambda y_true, y_pred: y_true * 0
 
+        spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss = self.prepare_additional_loss_functions("out_2")
+
         return lambda y_true, y_pred: self.config['training']['loss']['out_2'][
                                           'weight'] * util.l1_l2_combined_loss(
             y_true, y_pred, self.config['training']['loss']['out_2']['l1'],
-            self.config['training']['loss']['out_2']['l2']) + weighted_spectrogram_loss(y_true, y_pred, WEIGHTS)
+            self.config['training']['loss']['out_2']['l2']) + spec_loss(y_true, y_pred) + \
+                                      spec_conv_loss(y_true, y_pred) + \
+                                      weighted_spec_loss(y_true, y_pred) + \
+                                      rms_loss(y_true, y_pred)
 
+    def prepare_additional_loss_functions(self, output):
+        def spec_loss(y_true, y_pred):
+            return 0
+
+        def spec_conv_loss(y_true, y_pred):
+            return 0
+
+        def weighted_spec_loss(y_true, y_pred):
+            return 0
+
+        def rms_loss(y_true, y_pred):
+            return 0
+
+        nfft = self.config['training']['loss'][output]['spec_param']['nfft']
+        frame_len = self.config['training']['loss'][output]['spec_param']['frame_len']
+        frame_step = self.config['training']['loss'][output]['spec_param']['frame_step']
+        center_freq = self.config['training']['loss'][output]['spec_param']['weighted_spectrogram']['center_frequency']
+        std = self.config['training']['loss'][output]['spec_param']['weighted_spectrogram']['std']
+
+        if self.config['training']['loss'][output]['spectrogram']['weight'] != 0:
+            def spec_loss(y_true, y_pred):
+                return spectrogram_loss(y_true, y_pred, frame_len, frame_step, nfft) * \
+                    self.config['training']['loss']['out_2']['spectrogram']['weight']
+
+        if self.config['training']['loss'][output]['spectral_convergence']['weight'] != 0:
+            def spec_conv_loss(y_true, y_pred):
+                return spectral_convergence_loss(y_true, y_pred, frame_len, frame_step, nfft) * \
+                    self.config['training']['loss'][output]['spectral_convergence']['weight']
+
+        if self.config['training']['loss'][output]['weighted_spectrogram']['weight'] != 0:
+            weights = gaussian_spectrogram_weights(nfft, center_freq, std)
+
+            def weighted_spec_loss(y_true, y_pred):
+                return weighted_spectrogram_loss(y_true, y_pred, weights, frame_len, frame_step, nfft) * \
+                    self.config['training']['loss']['out_2']['weighted_spectrogram']['weight']
+
+        if self.config['training']['loss'][output]['rms']['weight'] != 0:
+            def rms_loss(y_true, y_pred):
+                return tf_rms_loss(y_true, y_pred) * self.config['training']['loss']['out_2']['rms']['weight']
+
+        return spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss
 
     def get_callbacks(self):
 

@@ -13,17 +13,17 @@ def gaussian_spectrogram_weights(nfft, center_freq_hz, samplerate):
 WEIGHTS = gaussian_spectrogram_weights(1024, 2000, 16000)
 
 
-def spectrogram_loss(y_true, y_pred):
-    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=512, frame_step=256, fft_length=1024))
-    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=512, frame_step=256, fft_length=1024))
+def spectrogram_loss(y_true, y_pred, frame_length, frame_step, fft_length):
+    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
+    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
 
     loss = tf.reduce_mean(tf.abs(spec_true - spec_pred))
     return loss
 
 
-def weighted_spectrogram_loss(y_true, y_pred, weights):
-    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=512, frame_step=256, fft_length=1024))
-    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=512, frame_step=256, fft_length=1024))
+def weighted_spectrogram_loss(y_true, y_pred, weights, frame_length, frame_step, fft_length):
+    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
+    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
 
     loss = tf.reduce_mean(tf.abs((spec_true  - spec_pred) * tf.constant(weights)))
     return loss
@@ -62,9 +62,9 @@ def phase_spectrum_loss(y_true, y_pred):
     return loss
 
 
-def spectral_convergence_loss(y_true, y_pred):
-    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=256, frame_step=128))
-    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=256, frame_step=128))
+def spectral_convergence_loss(y_true, y_pred, frame_length, frame_step, fft_length):
+    spec_true = tf.abs(tf.signal.stft(y_true, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
+    spec_pred = tf.abs(tf.signal.stft(y_pred, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length))
 
     spec_conv = tf.norm(spec_true - spec_pred) / tf.norm(spec_true)
 

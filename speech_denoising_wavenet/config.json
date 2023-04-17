@@ -1,4 +1,5 @@
 {
+  "extended_format": true,
   "dataset": {
     "extract_voice": true,
     "in_memory_percentage": 1,
@@ -12,7 +13,7 @@
   "model": {
     "condition_encoding": "binary",
     "no_conditioning": true,
-    "dilations": 5,
+    "dilations": 9,
     "filters": {
       "lengths": {
         "res": 3,
@@ -33,7 +34,19 @@
     },
     "num_stacks": 3,
     "target_field_length": 1601,
-    "target_padding": 1
+    "target_padding": 1,
+    "dropout": {
+      "use": false,
+      "rates": {
+        "res": 0.3,
+        "final": 0.3,
+        "skip": 0.3
+      }
+    },
+    "wiener_filter": {
+      "pre": false,
+      "post": false
+    }
   },
   "optimizer": {
     "decay": 0.0,
@@ -49,18 +62,58 @@
       "out_1": {
         "l1": 1,
         "l2": 0,
-        "weight": 1
+        "weight": 1,
+        "spec_param":
+        {
+          "frame_len": 1024,
+          "frame_step": 512,
+          "nfft": 512
+        },
+        "spectrogram": {
+          "weight": 0
+        },
+        "spectral_convergence": {
+          "weight": 0
+        },
+        "weighted_spectrogram": {
+          "weight": 0,
+          "center_frequency": 2000,
+          "std": 500
+        },
+        "rms": {
+          "weight": 0
+        }
       },
       "out_2": {
         "l1": 1,
         "l2": 0,
-        "weight": 1
+        "weight": 1,
+        "spec_param":
+        {
+          "frame_len": 1024,
+          "frame_step": 512,
+          "nfft": 512
+        },
+        "spectrogram": {
+          "weight": 0
+        },
+        "spectral_convergence": {
+          "weight": 0
+        },
+        "weighted_spectrogram": {
+          "weight": 0,
+          "center_frequency": 2000,
+          "std": 500
+        },
+        "rms": {
+          "weight": 0
+        }
       }
     },
     "num_epochs": 250,
     "num_test_samples": 100,
     "num_train_samples": 1000,
-    "path": "sessions/default_5_l1l2_weighted_spec",
+    "path": "sessions/default_9_nc",
     "verbosity": 1
   }
 }
