@@ -79,6 +79,7 @@ def tf_rms_loss(y_true, y_pred):
     rms_pred = tf.sqrt(tf.reduce_mean(tf.square(y_pred), axis=-1))
     return tf.abs(rms_true - rms_pred)
 
+
 def segmented_rms_loss(y_true, y_pred):
 
     seg_true = tf.split(y_true, 10)
@@ -87,3 +88,9 @@ def segmented_rms_loss(y_true, y_pred):
     rms_true = tf.sqrt(tf.reduce_mean(tf.square(seg_true), axis=1))
     rms_pred = tf.sqrt(tf.reduce_mean(tf.square(seg_pred), axis=1))
     return tf.reduce_mean(tf.abs(rms_true - rms_pred), axis=-1)
+
+
+def magnitude_loss(y_true, y_pred):
+    y_true_fft = tf.abs(tf.signal.rfft(y_true))
+    y_pred_fft = tf.abs(tf.signal.rfft(y_pred))
+    return tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
