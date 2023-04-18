@@ -192,8 +192,8 @@ class DenoisingWavenet():
         nfft = self.config['training']['loss'][output]['spec_param']['nfft']
         frame_len = self.config['training']['loss'][output]['spec_param']['frame_len']
         frame_step = self.config['training']['loss'][output]['spec_param']['frame_step']
-        center_freq = self.config['training']['loss'][output]['spec_param']['weighted_spectrogram']['center_frequency']
-        std = self.config['training']['loss'][output]['spec_param']['weighted_spectrogram']['std']
+        center_freq = self.config['training']['loss'][output]['weighted_spectrogram']['center_frequency']
+        std = self.config['training']['loss'][output]['weighted_spectrogram']['std']
 
         if self.config['training']['loss'][output]['spectrogram']['weight'] != 0:
             def spec_loss(y_true, y_pred):
@@ -206,7 +206,7 @@ class DenoisingWavenet():
                     self.config['training']['loss'][output]['spectral_convergence']['weight']
 
         if self.config['training']['loss'][output]['weighted_spectrogram']['weight'] != 0:
-            weights = gaussian_spectrogram_weights(nfft, center_freq, std)
+            weights = gaussian_spectrogram_weights(nfft, center_freq, std, self.config['dataset']['sample_rate'])
 
             def weighted_spec_loss(y_true, y_pred):
                 return weighted_spectrogram_loss(y_true, y_pred, weights, frame_len, frame_step, nfft) * \

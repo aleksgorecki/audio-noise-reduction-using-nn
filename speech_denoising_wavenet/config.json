@@ -67,7 +67,7 @@
         {
           "frame_len": 1024,
           "frame_step": 512,
-          "nfft": 512
+          "nfft": 1024
         },
         "spectrogram": {
           "weight": 0
@@ -92,7 +92,7 @@
         {
           "frame_len": 1024,
           "frame_step": 512,
-          "nfft": 512
+          "nfft": 1024
         },
         "spectrogram": {
           "weight": 0
@@ -101,7 +101,7 @@
           "weight": 0
         },
         "weighted_spectrogram": {
-          "weight": 0,
+          "weight": 1,
           "center_frequency": 2000,
           "std": 500
         },
@@ -113,7 +113,7 @@
     "num_epochs": 250,
     "num_test_samples": 100,
     "num_train_samples": 1000,
-    "path": "sessions/default_9_nc",
+    "path": "sessions/default_5_new_config",
     "verbosity": 1
   }
 }

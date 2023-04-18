@@ -2,15 +2,11 @@ import tensorflow as tf
 import numpy as np
 
 
-def gaussian_spectrogram_weights(nfft, center_freq_hz, samplerate):
-    freq_std = 500
+def gaussian_spectrogram_weights(nfft, center_freq_hz, std, samplerate):
     freq_bins = np.linspace(0, int(samplerate/2), nfft//2 + 1, dtype='float32')
-    weights = np.exp(-(freq_bins - center_freq_hz) ** 2 / (2 * freq_std ** 2), dtype='float32')
+    weights = np.exp(-(freq_bins - center_freq_hz) ** 2 / (2 * std ** 2), dtype='float32')
     weights /= np.max(weights)
     return weights
-
-
-WEIGHTS = gaussian_spectrogram_weights(1024, 2000, 16000)
 
 
 def spectrogram_loss(y_true, y_pred, frame_length, frame_step, fft_length):
