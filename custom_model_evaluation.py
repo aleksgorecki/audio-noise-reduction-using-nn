@@ -10,6 +10,7 @@ import soundfile as sf
 import speechmetrics
 sys.path.append("speech_denoising_wavenet")
 from speech_denoising_wavenet.models import DenoisingWavenet
+from speech_denoising_wavenet import util
 
 
 my_speechmetrics = speechmetrics.load("", window=2)
@@ -45,12 +46,18 @@ def prepare_batch(example, model: DenoisingWavenet):
             batch[i][0:num_output_samples - target_field_window_start] = example[target_field_window_start: num_output_samples]
             continue
         batch[i] = example[target_field_window_start: target_field_window_start + input_len]
+    if not bool(model.config["model"].get("no_conditioning")):
+        condition_input = util.binary_encode(int(0), 29)[0]
+        condition_batch = np.array([condition_input, ] * len(batch), dtype='uint8')
+    else:
+        condition_batch = None
+    return batch, condition_batch
     # for i, target_field_window_start in enumerate(list(range(0, num_output_samples, target_field_len))):
     #     if int(target_field_window_start + input_len) > num_output_samples:
     #         batch[i][0:example.shape[0] - target_field_window_start] = example[target_field_window_start:]
     #         continue
     #     batch[i] = example[target_field_window_start: target_field_window_start + input_len]
-    return batch
+
 
 
 def calculate_mean_metrics(metrics_dicts):
@@ -67,8 +74,11 @@ def calculate_mean_metrics(metrics_dicts):
 def evaluate_example(example_noisy, example_clean, model: DenoisingWavenet):
     # sliced_clean = slice_example(example_clean, int(model.input_length))
 
-    noisy_batch = prepare_batch(example_noisy, model)
-    predicted_batch = model.model.predict(noisy_batch, verbose=0)[0]
+    noisy_batch, condition_batch = prepare_batch(example_noisy, model)
+    if condition_batch is not None:
+        predicted_batch = model.model.predict({"data_input": noisy_batch, "condition_input": condition_batch}, verbose=0)[0]
+    else:
+        predicted_batch = model.model.predict(noisy_batch, verbose=0)[0]
     predicted_vector = predicted_batch.flatten()
     example_clean = example_clean[: predicted_vector.shape[0]]
 
@@ -117,17 +127,17 @@ if __name__ == "__main__":
 
     dataset = "data/NSDTSEA/"
 
-    config_path = "sessions/default_5_l1l2_weighted_spec/config.json"
-    checkpoint_path = "sessions/default_5_l1l2_weighted_spec/checkpoints/checkpoint.00040-0.258.hdf5"
+    # config_path = "sessions/001/config.json"
+    # checkpoint_path = "sessions/001/checkpoints/checkpoint.00144.hdf5"
+    #
+    # with open(config_path, "r") as f:
+    #     config = json.load(f)
+    #     model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
+    #     metrics = evaluate_on_testset(dataset, model)
+    #     print(metrics)
 
-    with open(config_path, "r") as f:
-        config = json.load(f)
-        model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
-        metrics = evaluate_on_testset(dataset, model)
-        print(metrics)
-
-    config_path = "sessions/default_9_combined_sc_rms_loss/config.json"
-    checkpoint_path = "sessions/default_9_combined_sc_rms_loss/checkpoints/checkpoint.00048-0.762.hdf5"
+    config_path = "sessions/default_5_si_sdr/config.json"
+    checkpoint_path = "sessions/default_5_si_sdr/checkpoints/checkpoint.00052--1.621.hdf5"
 
     with open(config_path, "r") as f:
         config = json.load(f)

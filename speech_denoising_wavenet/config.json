@@ -13,7 +13,7 @@
   "model": {
     "condition_encoding": "binary",
     "no_conditioning": true,
-    "dilations": 9,
+    "dilations": 5,
     "filters": {
       "lengths": {
         "res": 3,
@@ -62,11 +62,17 @@
       "out_1": {
         "l1": 1,
         "l2": 0,
-        "weight": 1,
+        "weight": 0,
+        "sdr": {
+          "weight": 1
+        },
+        "si-sdr": {
+          "weight": 0
+        },
         "spec_param":
         {
-          "frame_len": 1024,
-          "frame_step": 512,
+          "frame_len": 512,
+          "frame_step": 256,
           "nfft": 1024
         },
         "spectrogram": {
@@ -87,11 +93,17 @@
       "out_2": {
         "l1": 1,
         "l2": 0,
-        "weight": 1,
+        "weight": 0,
+        "sdr": {
+          "weight": 1
+        },
+        "si-sdr": {
+          "weight": 0
+        },
         "spec_param":
         {
-          "frame_len": 1024,
-          "frame_step": 512,
+          "frame_len": 512,
+          "frame_step": 256,
           "nfft": 1024
         },
         "spectrogram": {
@@ -111,9 +123,9 @@
       }
     },
     "num_epochs": 250,
-    "num_test_samples": 100,
-    "num_train_samples": 1000,
-    "path": "sessions/default_5_new_config",
+    "num_test_samples": 300,
+    "num_train_samples": 3000,
+    "path": "sessions/default_5_sdr_3000",
     "verbosity": 1
   }
 }

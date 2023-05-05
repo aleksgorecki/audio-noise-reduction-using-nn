@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import math
 
 
 def gaussian_spectrogram_weights(nfft, center_freq_hz, std, samplerate):
@@ -94,3 +95,51 @@ def magnitude_loss(y_true, y_pred):
     y_true_fft = tf.abs(tf.signal.rfft(y_true))
     y_pred_fft = tf.abs(tf.signal.rfft(y_pred))
     return tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
+
+
+def tf_sdr_loss(y_true, y_pred):
+    # eps = 1e-10
+    # numerator = tf.square(tf.norm(y_true, axis=1))
+    # denominator = tf.square(tf.norm(y_true - y_pred, axis=1))
+    # return -10 * tf_log_10(numerator / denominator + eps)
+    eps = 1e-10
+    numerator = tf.reduce_sum(tf.square(y_true + eps), axis=1)
+    denominator = tf.reduce_sum(tf.square(y_true - y_pred + eps), axis=1)
+    return tf.reduce_mean(-10 * tf_log_10(numerator / (denominator + eps)))
+
+
+def tf_si_sdr_loss(y_true, y_pred):
+    eps = 1e-10
+
+    y_true_energy = tf.reduce_sum(y_true ** 2, axis=1)
+    scale = tf.reduce_sum(y_pred * y_true, axis=1) / y_true_energy
+    scale = tf.reshape(scale, [tf.shape(scale)[0], 1])
+    projection = scale * y_true
+    residual = projection - y_pred
+
+    numerator = tf.reduce_sum(projection ** 2, axis=1)
+    denominator = tf.reduce_sum(residual ** 2, axis=1)
+
+    return tf.reduce_mean(-10 * tf_log_10(numerator / (denominator + eps)))
+
+    # eps = 1e-10
+    # numerator = tf.square(tf.norm(y_true, axis=1))
+    # denominator = tf.square(tf.norm(y_true - y_pred, axis=1))
+    # return -10 * tf_log_10(numerator / (denominator + eps))
+
+    # scale = (tf.matmul(tf.transpose(y_pred), y_true)) / tf.square(tf.norm(y_true))
+    #
+    # numerator = tf.square(tf.norm(tf.matmul(scale, y_true)))
+    # denominator = tf.square(tf.norm(tf.matmul(scale, y_true) - y_pred))
+    #
+    # return -10 * tf_log_10((numerator / denominator))
+
+
+def iwakura_saito_loss(y_true, y_pred):
+    pass
+
+
+def tf_log_10(num):
+    numerator = tf.math.log(num)
+    denominator = tf.math.log(tf.constant(10, dtype=numerator.dtype))
+    return numerator / denominator

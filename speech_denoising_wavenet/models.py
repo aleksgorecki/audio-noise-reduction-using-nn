@@ -61,6 +61,13 @@ class DenoisingWavenet():
         self.samples_of_interest_indices = self.get_padded_target_field_indices()
         self.target_sample_indices = self.get_target_field_indices()
 
+        if bool(config.get("extended_format")):
+            self.use_dropout = bool(config['model']['dropout']['use'])
+            self.extended_format = bool(config.get("extended_format"))
+        else:
+            self.extended_format = False
+            self.use_dropout = False
+
         self.optimizer = self.get_optimizer()
         self.out_1_loss = self.get_out_1_loss()
         self.out_2_loss = self.get_out_2_loss()
@@ -79,8 +86,6 @@ class DenoisingWavenet():
             self.build_model = self.build_model_without_conditioning
         else:
             self.build_model = self.build_model_with_conditioning
-
-        self.use_dropout = bool(config['model']['dropout']['use'])
 
         self.model = self.setup_model(load_checkpoint, print_model_summary)
 
@@ -159,12 +164,22 @@ class DenoisingWavenet():
         #     y_true, y_pred, self.config['training']['loss']['out_1']['l1'],
         #     self.config['training']['loss']['out_1']['l2'])
 
-        l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss = self.prepare_additional_loss_functions(
-            "out_1")
+        if self.extended_format:
+            l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss, sdr_loss, si_sdr_loss = self.prepare_additional_loss_functions(
+                "out_1")
 
-        return lambda y_true, y_pred: l1l2_loss(y_true, y_pred) + spec_loss(y_true, y_pred) + \
-                                      spec_conv_loss(y_true, y_pred) + weighted_spec_loss(y_true, y_pred) + \
-                                      rms_loss(y_true, y_pred)
+            return lambda y_true, y_pred: l1l2_loss(y_true, y_pred) + spec_loss(y_true, y_pred) + \
+                                          spec_conv_loss(y_true, y_pred) + weighted_spec_loss(y_true, y_pred) + \
+                                          rms_loss(y_true, y_pred) + sdr_loss(y_true, y_pred) + si_sdr_loss(y_true, y_pred)
+        else:
+            if self.config['training']['loss']['out_1']['weight'] == 0:
+                return lambda y_true, y_pred: y_true * 0
+
+
+            return lambda y_true, y_pred: self.config['training']['loss']['out_1'][
+                                              'weight'] * util.l1_l2_combined_loss(
+                y_true, y_pred, self.config['training']['loss']['out_1']['l1'],
+                self.config['training']['loss']['out_1']['l2'])
 
     def get_out_2_loss(self):
 
@@ -178,11 +193,20 @@ class DenoisingWavenet():
         #     y_true, y_pred, self.config['training']['loss']['out_2']['l1'],
         #     self.config['training']['loss']['out_2']['l2'])
 
-        l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss = self.prepare_additional_loss_functions(
-            "out_2")
-        return lambda y_true, y_pred: l1l2_loss(y_true, y_pred) + spec_loss(y_true, y_pred) + \
-                                      spec_conv_loss(y_true, y_pred) + weighted_spec_loss(y_true, y_pred) + \
-                                      rms_loss(y_true, y_pred)
+        if self.extended_format:
+            l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss, sdr_loss, si_sdr_loss = self.prepare_additional_loss_functions(
+                "out_2")
+            return lambda y_true, y_pred: l1l2_loss(y_true, y_pred) + spec_loss(y_true, y_pred) + \
+                                          spec_conv_loss(y_true, y_pred) + weighted_spec_loss(y_true, y_pred) + \
+                                          rms_loss(y_true, y_pred) + sdr_loss(y_true, y_pred) + si_sdr_loss(y_true, y_pred)
+        else:
+            if self.config['training']['loss']['out_2']['weight'] == 0:
+                return lambda y_true, y_pred: y_true * 0
+
+            return lambda y_true, y_pred: self.config['training']['loss']['out_2'][
+                                              'weight'] * util.l1_l2_combined_loss(
+                y_true, y_pred, self.config['training']['loss']['out_2']['l1'],
+                self.config['training']['loss']['out_2']['l2'])
 
     def prepare_additional_loss_functions(self, output):
 
@@ -199,6 +223,12 @@ class DenoisingWavenet():
             return 0
 
         def rms_loss(y_true, y_pred):
+            return 0
+
+        def sdr_loss(y_true, y_pred):
+            return 0
+
+        def si_sdr_loss(y_true, y_pred):
             return 0
 
         nfft = self.config['training']['loss'][output]['spec_param']['nfft']
@@ -234,7 +264,15 @@ class DenoisingWavenet():
             def rms_loss(y_true, y_pred):
                 return tf_rms_loss(y_true, y_pred) * self.config['training']['loss'][output]['rms']['weight']
 
-        return l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss
+        if self.config['training']['loss'][output]['sdr']['weight'] != 0:
+            def sdr_loss(y_true, y_pred):
+                return tf_sdr_loss(y_true, y_pred) * self.config['training']['loss'][output]['sdr']['weight']
+
+        if self.config['training']['loss'][output]['si-sdr']['weight'] != 0:
+            def si_sdr_loss(y_true, y_pred):
+                return tf_si_sdr_loss(y_true, y_pred) * self.config['training']['loss'][output]['si-sdr']['weight']
+
+        return l1l2_loss, spec_loss, spec_conv_loss, weighted_spec_loss, rms_loss, sdr_loss, si_sdr_loss
 
     def get_callbacks(self):
 
@@ -243,7 +281,7 @@ class DenoisingWavenet():
                                                  cooldown=self.config['training']['early_stopping_patience'] / 4,
                                                  verbose=1),
             tf.keras.callbacks.EarlyStopping(patience=self.config['training']['early_stopping_patience'], verbose=1,
-                                             monitor='val_loss'),
+                                             monitor='loss'),
             tf.keras.callbacks.ModelCheckpoint(
                 os.path.join(self.checkpoints_path, 'checkpoint.{epoch:05d}-{val_loss:.3f}.hdf5')),
             tf.keras.callbacks.CSVLogger(os.path.join(self.config['training']['path'], self.history_filename),
@@ -265,9 +303,6 @@ class DenoisingWavenet():
         #                          callbacks=self.get_callbacks(),
         #                          verbose=self.verbosity,
         #                          initial_epoch=self.epoch_num)
-
-        with open("./file_read_log.txt", "w") as frlf:
-            frlf.write("")
 
         batch_size = self.config["training"]["batch_size"]
 
