@@ -18,9 +18,10 @@ def split_iterable(collection: Sized, val_ratio: float, test_ratio: float):
 
 
 def demand_to_intermediate_form(demand_zipped_dir: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15):
-    dir_names = ["train", "val", "test"]
-    for dir_name in dir_names:
-        os.makedirs(os.path.join(output_dir, dir_name), exist_ok=True)
+    output_meta = pd.DataFrame(columns=["clip", "category", "split", "top_category"])
+    split_names = ["train", "val", "test"]
+    clips_dir = os.path.join(output_dir, "clips")
+    os.makedirs(clips_dir, exist_ok=True)
     for noise_class in DEMAND_NOISE_CLASSES:
         nc_path = os.path.join(demand_zipped_dir, noise_class + "_48k.zip")
         with zipfile.ZipFile(nc_path, "r") as archive:
@@ -32,8 +33,15 @@ def demand_to_intermediate_form(demand_zipped_dir: str, output_dir: str, val_rat
             test = ch01_audio[len(train) + len(val):]
 
             for i, subset in enumerate([train, val, test]):
-                sf.write(os.path.join(output_dir, dir_names[i], noise_class + ".wav"), subset, samplerate=16000)
-
+                num_clips = int((len(subset) / (4 * 16000)))
+                clips = np.array_split(subset, num_clips)
+                clips = [x for x in clips if len(x) >= int(4 * 16000)]
+                for i_clip, clip in enumerate(clips):
+                    name = os.path.join(f"{noise_class}_{split_names[i]}_{i_clip}.wav")
+                    record = pd.DataFrame(data=[{"clip": name, "category": noise_class, "split": split_names[i]}])
+                    output_meta = pd.concat((output_meta, record), ignore_index=True)
+                    sf.write(os.path.join(clips_dir, name), clip, samplerate=16000)
+    output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
 
 def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15, clips_per_speaker: int = 30):
     clips_path = os.path.join(vctk_original_path, "wav48_silence_trimmed")
@@ -158,8 +166,8 @@ def esc50_to_intermediate(esc_original_path: str, output_dir: str):
 
 
 if __name__ == "__main__":
-    # demand_to_intermediate_form("/home/aleks/magister/datasets/DEMAND/", "/home/aleks/magister/datasets/DEMAND_intermediate/")
+    demand_to_intermediate_form("/home/aleks/magister/datasets/DEMAND/", "/home/aleks/magister/datasets/demand_intermediate/")
     # vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/vctk_intermediate/", clips_per_speaker=30)
     # cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/cv_intermediate", clips_per_speaker=30)
     # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
-    esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")
+    #esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")
