@@ -82,13 +82,13 @@ def evaluate_example(example_noisy, example_clean, model: DenoisingWavenet):
     predicted_vector = predicted_batch.flatten()
     example_clean = example_clean[: predicted_vector.shape[0]]
 
-    example_metrics = {
-        "pesq": pypesq.pesq(ref=example_clean, deg=predicted_vector, fs=model.config["dataset"]["sample_rate"]),
-        "stoi": pystoi.stoi(x=example_clean, y=predicted_vector, fs_sig=model.config["dataset"]["sample_rate"])
-    }
+    # example_metrics = {
+    #     "pesq": pypesq.pesq(ref=example_clean, deg=predicted_vector, fs=model.config["dataset"]["sample_rate"]),
+    #     "stoi": pystoi.stoi(x=example_clean, y=predicted_vector, fs_sig=model.config["dataset"]["sample_rate"])
+    # }
 
     speechmetrics_res = my_speechmetrics(predicted_vector, example_clean, rate=int(model.config["dataset"]["sample_rate"]))
-    example_metrics.update(speechmetrics_res)
+    example_metrics = speechmetrics_res
 
     # example_metrics = dict({
     #     "pesq": list(),
@@ -120,6 +120,23 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet):
 
     mean_metrics = calculate_mean_metrics(calculated_metrics)
     return mean_metrics
+
+
+def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_metrics):
+    noisy_batch, condition_batch = prepare_batch(example_noisy, model)
+    if condition_batch is not None:
+        predicted_batch = model.model.predict({"data_input": noisy_batch, "condition_input": condition_batch}, verbose=0)[0]
+    else:
+        predicted_batch = model.model.predict(noisy_batch, verbose=0)[0]
+    predicted_vector = predicted_batch.flatten()
+    example_clean = example_clean[: predicted_vector.shape[0]]
+
+    example_metrics = None
+    if calc_metrics:
+        speechmetrics_res = my_speechmetrics(predicted_vector, example_clean, rate=int(model.config["dataset"]["sample_rate"]))
+        example_metrics = speechmetrics_res
+
+    return predicted_vector, example_metrics
 
 
 if __name__ == "__main__":
