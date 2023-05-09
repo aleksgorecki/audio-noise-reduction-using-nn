@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QGroupBox, QVBox
 import sys
 from control_widget import ControlWidget
 from visual_widget import VisualWidget
+import os
 
 
 class MainWindow(QWidget):
@@ -27,6 +28,7 @@ class MainWindow(QWidget):
 
 
 if __name__ == "__main__":
+    #os.chdir("../speech_denoising_wavenet")
     app = QApplication(sys.argv)
     window = MainWindow(window_name="Inference GUI")
     window.show()

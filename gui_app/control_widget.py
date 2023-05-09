@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFileDialog, QPushButton, QLab
 from PyQt5.QtCore import pyqtSlot
 import pathlib
 from speech_denoising_wavenet.models import DenoisingWavenet
-from custom_model_evaluation import evaluate_example
+from custom_model_evaluation import predict_example
 import tensorflow as tf
 import librosa
 import numpy as np
@@ -85,6 +85,8 @@ class ControlWidget(QWidget):
         self.latest_weights_radio.clicked.connect(self.latest_weights_toggle)
         self.custom_weights_radio.clicked.connect(self.custom_weights_toggle)
         self.custom_weights_button.clicked.connect(self.select_weights_onclick)
+        self.run_button.clicked.connect(self.run_prediction_onclick)
+        self.load_model_button.clicked.connect(self.load_model_onclick)
 
         self.layout().addWidget(self.run_button)
         self.layout().addWidget(self.noisy_input_group)
@@ -112,7 +114,10 @@ class ControlWidget(QWidget):
         if noisy_input != "":
             self.noisy_input_path = noisy_input
             self.last_noisy_dir = os.path.dirname(noisy_input)
+            self.noisy_input_data = librosa.core.load(self.noisy_input_path, sr=None)
             ControlWidget.set_label_text_enable(self.noisy_input_label, str(pathlib.Path(self.noisy_input_path).name))
+            if self.model is not None:
+                self.run_button.setEnabled(True)
 
     @pyqtSlot()
     def session_onclick(self):
@@ -163,6 +168,7 @@ class ControlWidget(QWidget):
         try:
             with open(os.path.join(self.session_path, "config.json"), "r") as cf:
                 config = json.load(cf)
+                config["training"]["path"] = self.session_path
                 checkpoint = None
                 if self.best_weights_radio.isChecked():
                     checkpoint = ControlWidget.get_best_checkpoint(os.path.join(self.session_path), "checkpoints")
@@ -182,8 +188,17 @@ class ControlWidget(QWidget):
             dialog.exec()
 
     def run_prediction_onclick(self):
+        noisy_path = pathlib.Path(self.noisy_input_path)
+        clean_name = noisy_path.name
+        clean_parent = str(noisy_path.parents[1])
+        set_name = str(noisy_path.parents[0].name).replace("noisy", "clean")
+        clean_path = os.path.join(clean_parent, set_name, clean_name)
 
-        pass
+        clean_data = librosa.core.load(clean_path, sr=None)
+
+        predicted, metrics = predict_example(self.noisy_input_data[0], clean_data, self.model, self.metrics_checkbox.isChecked())
+
+        print(metrics)
 
 
     @staticmethod

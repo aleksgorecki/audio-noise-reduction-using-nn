@@ -1,15 +1,14 @@
 # A Wavenet For Speech Denoising - Dario Rethage - 19.05.2017
 # Models.py
 
-import util
+import speech_denoising_wavenet.util as util
 import os
 import numpy as np
-import layers
+import speech_denoising_wavenet.layers as layers
 import logging
 import tensorflow as tf
-import loss_plot_callback
-import file_read_log_callback
-from my_loss_functions import *
+import speech_denoising_wavenet.loss_plot_callback as loss_plot_callback
+from speech_denoising_wavenet.my_loss_functions import *
 
 
 # Speech Denoising Wavenet Model

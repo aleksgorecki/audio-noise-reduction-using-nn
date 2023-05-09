@@ -9,10 +9,7 @@ import scipy.signal
 import scipy.stats
 import soundfile as sf
 import tensorflow as tf
-import tensorflow_io as tfio
 import time
-
-from fontTools.ttLib.tables._g_l_y_f import table__g_l_y_f
 
 
 def l1_l2_loss(y_true, y_pred, l1_weight, l2_weight):
@@ -89,23 +86,23 @@ def l1_l2_combined_power_loss(y_true, y_pred, l1_weight, l2_weight):
     return loss
 
 
-def l1_l2_spectrogram_loss(y_true, y_pred, l1_weight, l2_weight):
-    loss = 0
-
-    spec_true = tfio.audio.spectrogram(y_true, nfft=len(y_true), window=512, stride=256)
-    spec_pred = tfio.audio.spectrogram(y_pred, nfft=len(y_pred), window=512, stride=256)
-
-    loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
-    # loss += tf.reduce_mean(tf.abs(tf.subtract(spec_true, spec_pred)))
-
-    # if l1_weight != 0:
-    #     tf.subtract
-    #     loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
-    #
-    # if l2_weight != 0:
-    #     loss += tf.keras.losses.mean_squared_error(spec_true, spec_pred)
-
-    return loss
+# def l1_l2_spectrogram_loss(y_true, y_pred, l1_weight, l2_weight):
+#     loss = 0
+#
+#     spec_true = tfio.audio.spectrogram(y_true, nfft=len(y_true), window=512, stride=256)
+#     spec_pred = tfio.audio.spectrogram(y_pred, nfft=len(y_pred), window=512, stride=256)
+#
+#     loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
+#     # loss += tf.reduce_mean(tf.abs(tf.subtract(spec_true, spec_pred)))
+#
+#     # if l1_weight != 0:
+#     #     tf.subtract
+#     #     loss += tf.keras.losses.mean_absolute_error(spec_true, spec_pred)
+#     #
+#     # if l2_weight != 0:
+#     #     loss += tf.keras.losses.mean_squared_error(spec_true, spec_pred)
+#
+#     return loss
 
 
 #
