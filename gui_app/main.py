@@ -15,8 +15,8 @@ class MainWindow(QWidget):
         self.control_group.setLayout(QVBoxLayout())
         self.visual_group.setLayout(QVBoxLayout())
 
-        self.control_widget = ControlWidget()
         self.visual_widget = VisualWidget()
+        self.control_widget = ControlWidget(self.visual_widget)
 
         self.control_group.layout().addWidget(self.control_widget)
         self.visual_group.layout().addWidget(self.visual_widget)
@@ -24,6 +24,8 @@ class MainWindow(QWidget):
         self.layout().addWidget(self.control_group)
         self.layout().addWidget(self.visual_group)
 
+        self.setFixedWidth(1000)
+        self.setFixedHeight(800)
         self.setWindowTitle(window_name)
 
 

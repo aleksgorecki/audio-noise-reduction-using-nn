@@ -8,14 +8,11 @@ import json
 import tensorflow as tf
 import soundfile as sf
 import speechmetrics
-sys.path.append("speech_denoising_wavenet")
+# sys.path.append("speech_denoising_wavenet")
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet import util
 
-
-my_speechmetrics = speechmetrics.load("", window=2)
-
-
+my_speechmetrics = speechmetrics.load(["mosnet"], window=None)
 def load_example(noisy_path, clean_path, sr):
     noisy = librosa.load(noisy_path, sr=sr)
     clean = librosa.load(clean_path, sr=sr)
@@ -140,8 +137,7 @@ def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_
 
 
 if __name__ == "__main__":
-    os.chdir("/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet")
-
+    #os.chdir("/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet")
     dataset = "data/NSDTSEA/"
 
     # config_path = "sessions/001/config.json"

@@ -6,16 +6,15 @@ from PyQt5.QtCore import pyqtSlot
 import pathlib
 from speech_denoising_wavenet.models import DenoisingWavenet
 from custom_model_evaluation import predict_example
-import tensorflow as tf
 import librosa
-import numpy as np
+from visual_widget import VisualWidget
 
 
 class ControlWidget(QWidget):
-    WEIGHTS_SETTINGS = ["best", "latest", "custom"]
-
-    def __init__(self):
+    def __init__(self, visual_widget: VisualWidget):
         super().__init__()
+        self.setFixedWidth(300)
+        self.setFixedHeight(700)
         self.setLayout(QVBoxLayout())
 
         self.run_button = QPushButton("Run prediction", parent=self)
@@ -101,27 +100,35 @@ class ControlWidget(QWidget):
         self.load_model_button.setEnabled(False)
 
         self.model = None
+        self.visual_widget = visual_widget
 
     def set_default_settings(self):
         pass
 
     @pyqtSlot()
     def noisy_input_onclick(self):
+        if self.last_noisy_dir != "":
+            directory = self.last_noisy_dir
+        else:
+            directory = os.getcwd()
         options = QFileDialog.Options()
         noisy_input = \
             QFileDialog.getOpenFileName(parent=self, caption=self.tr("Select a file to denoise"), options=options,
-                                        filter=self.tr("Wav File (*.wav)"))[0]
+                                        filter=self.tr("Wav File (*.wav)"), directory=directory)[0]
         if noisy_input != "":
             self.noisy_input_path = noisy_input
             self.last_noisy_dir = os.path.dirname(noisy_input)
-            self.noisy_input_data = librosa.core.load(self.noisy_input_path, sr=None)
+            self.noisy_input_data = librosa.core.load(self.noisy_input_path, sr=16000, mono=True)
             ControlWidget.set_label_text_enable(self.noisy_input_label, str(pathlib.Path(self.noisy_input_path).name))
+            self.visual_widget.plot_noisy(self.noisy_input_data[0])
+            self.visual_widget.clear_results()
             if self.model is not None:
                 self.run_button.setEnabled(True)
 
     @pyqtSlot()
     def session_onclick(self):
-        session_dir = QFileDialog.getExistingDirectory(self, 'Select session directory')
+        directory = os.path.join("../speech_denoising_wavenet/sessions")
+        session_dir = QFileDialog.getExistingDirectory(self, 'Select session directory', directory=directory)
         if session_dir != "":
             dir_contents = os.listdir(session_dir)
             if "checkpoints" not in dir_contents or "config.json" not in dir_contents:
@@ -136,6 +143,7 @@ class ControlWidget(QWidget):
             self.weights_group.setEnabled(True)
             self.custom_weights_path = ""
             self.model = None
+            self.visual_widget.clear_results()
 
     @pyqtSlot()
     def select_weights_onclick(self):
@@ -171,9 +179,9 @@ class ControlWidget(QWidget):
                 config["training"]["path"] = self.session_path
                 checkpoint = None
                 if self.best_weights_radio.isChecked():
-                    checkpoint = ControlWidget.get_best_checkpoint(os.path.join(self.session_path), "checkpoints")
+                    checkpoint = ControlWidget.get_best_checkpoint(os.path.join(self.session_path, "checkpoints"))
                 elif self.latest_weights_radio.isChecked():
-                    checkpoint = ControlWidget.get_latest_checkpoint(os.path.join(self.session_path), "checkpoints")
+                    checkpoint = ControlWidget.get_latest_checkpoint(os.path.join(self.session_path, "checkpoints"))
                 elif self.custom_weights_radio.isChecked() and self.custom_weights_path != "":
                     checkpoint = self.custom_weights_path
                 else:
@@ -194,20 +202,34 @@ class ControlWidget(QWidget):
         set_name = str(noisy_path.parents[0].name).replace("noisy", "clean")
         clean_path = os.path.join(clean_parent, set_name, clean_name)
 
-        clean_data = librosa.core.load(clean_path, sr=None)
+        if not os.path.exists(clean_path):
+            dialog = QMessageBox()
+            dialog.setWindowTitle("Error")
+            dialog.setText("Clean example doesnt exist")
+            dialog.exec()
+            return
 
-        predicted, metrics = predict_example(self.noisy_input_data[0], clean_data, self.model, self.metrics_checkbox.isChecked())
+        clean_data = librosa.core.load(clean_path, sr=16000, mono=True)
+
+        predicted, metrics = predict_example(self.noisy_input_data[0], clean_data[0], self.model, self.metrics_checkbox.isChecked())
+
+        self.visual_widget.plot_predicted(predicted)
+        self.visual_widget.plot_clean(clean_data[0])
 
         print(metrics)
 
 
     @staticmethod
     def get_latest_checkpoint(checkpoints_dir):
-        pass
+        checkpoints = os.listdir(checkpoints_dir)
+        latest_checkpoint = max(checkpoints, key=lambda x: int(x[11:16]))
+        return os.path.join(checkpoints_dir, latest_checkpoint)
 
     @staticmethod
     def get_best_checkpoint(checkpoints_dir):
-        pass
+        checkpoints = os.listdir(checkpoints_dir)
+        best_checkpoint = min(checkpoints, key=lambda x: float(x[17:22]))
+        return os.path.join(checkpoints_dir, best_checkpoint)
 
     @staticmethod
     def set_label_empty(label: QLabel):
