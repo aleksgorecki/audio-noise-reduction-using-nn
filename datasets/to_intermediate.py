@@ -23,9 +23,9 @@ def demand_to_intermediate_form(demand_zipped_dir: str, output_dir: str, val_rat
     clips_dir = os.path.join(output_dir, "clips")
     os.makedirs(clips_dir, exist_ok=True)
     for noise_class in DEMAND_NOISE_CLASSES:
-        nc_path = os.path.join(demand_zipped_dir, noise_class + "_48k.zip")
+        nc_path = f"{demand_zipped_dir}/{noise_class}_48k.zip"
         with zipfile.ZipFile(nc_path, "r") as archive:
-            ch01 = io.BytesIO(archive.read(os.path.join(noise_class, "ch01.wav")))
+            ch01 = io.BytesIO(archive.read(f"{noise_class}/ch01.wav"))
             ch01_audio = librosa.core.load(ch01, sr=16000, mono=True)[0]
 
             train = ch01_audio[0: - int(len(ch01_audio) * val_ratio + len(ch01_audio) * test_ratio)]
@@ -166,7 +166,11 @@ def esc50_to_intermediate(esc_original_path: str, output_dir: str):
 
 
 if __name__ == "__main__":
-    demand_to_intermediate_form("/home/aleks/magister/datasets/DEMAND/", "/home/aleks/magister/datasets/demand_intermediate/")
+    pass
+    #demand_to_intermediate_form("../../demand", "../../demand_intermediate")
+    # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
+    # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
+    # vctk_to_intermediate_form("../../VCTK-Corpus", "../../vctk_intermediate")
     # vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/vctk_intermediate/", clips_per_speaker=30)
     # cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/cv_intermediate", clips_per_speaker=30)
     # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
