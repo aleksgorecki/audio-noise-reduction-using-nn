@@ -73,8 +73,8 @@ class VisualWidget(QWidget):
         time_ax = self.time_noisy_fig.add_subplot(111)
         spec_ax = self.spec_noisy_fig.add_subplot(111)
 
-        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_noisy_fig, ax=time_ax, eng=True)
-        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_noisy_fig, ax=spec_ax, eng=True)
+        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_noisy_fig, ax=time_ax, eng=True, title="Noisy")
+        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_noisy_fig, ax=spec_ax, eng=True, title="Noisy")
 
         self.time_noisy.draw()
         self.spec_noisy.draw()
@@ -86,8 +86,8 @@ class VisualWidget(QWidget):
         time_ax = self.time_pred_fig.add_subplot(111)
         spec_ax = self.spec_pred_fig.add_subplot(111)
 
-        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_pred_fig, ax=time_ax, eng=True)
-        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_pred_fig, ax=spec_ax, eng=True)
+        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_pred_fig, ax=time_ax, eng=True, title="Predicted")
+        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_pred_fig, ax=spec_ax, eng=True, title="Predicted")
 
         self.time_pred.draw()
         self.spec_pred.draw()
@@ -99,8 +99,8 @@ class VisualWidget(QWidget):
         time_ax = self.time_clean_fig.add_subplot(111)
         spec_ax = self.spec_clean_fig.add_subplot(111)
 
-        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_clean_fig, ax=time_ax, eng=True)
-        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_clean_fig, ax=spec_ax, eng=True)
+        visual.plot_waveform(data, fs=16000, show=False, fig=self.time_clean_fig, ax=time_ax, eng=True, title="Clean")
+        visual.plot_spectrogram(data, fs=16000, show=False, fig=self.spec_clean_fig, ax=spec_ax, eng=True, title="Clean")
 
         self.time_clean.draw()
         self.spec_clean.draw()

@@ -143,6 +143,7 @@ class ControlWidget(QWidget):
             self.weights_group.setEnabled(True)
             self.custom_weights_path = ""
             self.model = None
+            self.run_button.setEnabled(False)
             self.visual_widget.clear_results()
 
     @pyqtSlot()

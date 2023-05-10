@@ -29,9 +29,12 @@ def plot_waveform(data, fs, title=None, show=True, save_path=None, fig=None, ax=
 def plot_spectrogram(data, fs, title=None, show=True, save_path=None, fig=None, ax=None, eng=False):
     if fig is None or ax is None:
         fig, ax = plt.subplots()
-    stft = librosa.stft(data, win_length=512, hop_length=256)
+
+    win_len = 256
+    hop_len = 128
+    stft = librosa.stft(data, win_length=win_len, hop_length=hop_len)
     stft_db = librosa.amplitude_to_db(np.abs(stft), ref=np.max)
-    img = librosa.display.specshow(stft_db, sr=fs, ax=ax, x_axis='time', y_axis='linear')
+    img = librosa.display.specshow(stft_db, sr=fs, ax=ax, x_axis='time', y_axis='linear', win_length=win_len, hop_length=hop_len)
     fig.colorbar(img, ax=ax, format="%+2.f dB")
     ax.set(
         title=title,

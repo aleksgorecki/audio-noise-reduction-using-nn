@@ -12,7 +12,7 @@ import speechmetrics
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet import util
 
-my_speechmetrics = speechmetrics.load(["mosnet"], window=None)
+my_speechmetrics = speechmetrics.load([""], window=None)
 def load_example(noisy_path, clean_path, sr):
     noisy = librosa.load(noisy_path, sr=sr)
     clean = librosa.load(clean_path, sr=sr)
@@ -138,7 +138,7 @@ def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_
 
 if __name__ == "__main__":
     #os.chdir("/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet")
-    dataset = "data/NSDTSEA/"
+    dataset = "speech_denoising_wavenet/data/NSDTSEA/"
 
     # config_path = "sessions/001/config.json"
     # checkpoint_path = "sessions/001/checkpoints/checkpoint.00144.hdf5"
@@ -149,11 +149,25 @@ if __name__ == "__main__":
     #     metrics = evaluate_on_testset(dataset, model)
     #     print(metrics)
 
-    config_path = "sessions/default_5_si_sdr/config.json"
-    checkpoint_path = "sessions/default_5_si_sdr/checkpoints/checkpoint.00052--1.621.hdf5"
+    config_path = "speech_denoising_wavenet/sessions/default_5_sdr/config.json"
+    checkpoint_path = "speech_denoising_wavenet/sessions/default_5_sdr/checkpoints/checkpoint.00096--16.008.hdf5"
 
     with open(config_path, "r") as f:
         config = json.load(f)
+
+        config["training"]["path"] = os.path.join("speech_denoising_wavenet", config["training"]["path"])
+        model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
+        metrics = evaluate_on_testset(dataset, model)
+        print(metrics)
+
+    config_path = "speech_denoising_wavenet/sessions/default_5/config.json"
+    checkpoint_path = "speech_denoising_wavenet/sessions/default_5/checkpoints/checkpoint.00044-0.230.hdf5"
+
+    with open(config_path, "r") as f:
+        config = json.load(f)
+
+        config["training"]["path"] = os.path.join("speech_denoising_wavenet", config["training"]["path"])
+
         model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
         metrics = evaluate_on_testset(dataset, model)
         print(metrics)
