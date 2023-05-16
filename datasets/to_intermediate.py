@@ -23,9 +23,9 @@ def demand_to_intermediate_form(demand_zipped_dir: str, output_dir: str, val_rat
     clips_dir = os.path.join(output_dir, "clips")
     os.makedirs(clips_dir, exist_ok=True)
     for noise_class in DEMAND_NOISE_CLASSES:
-        nc_path = os.path.join(demand_zipped_dir, noise_class + "_48k.zip")
+        nc_path = f"{demand_zipped_dir}/{noise_class}_48k.zip"
         with zipfile.ZipFile(nc_path, "r") as archive:
-            ch01 = io.BytesIO(archive.read(os.path.join(noise_class, "ch01.wav")))
+            ch01 = io.BytesIO(archive.read(f"{noise_class}/ch01.wav"))
             ch01_audio = librosa.core.load(ch01, sr=16000, mono=True)[0]
 
             train = ch01_audio[0: - int(len(ch01_audio) * val_ratio + len(ch01_audio) * test_ratio)]
@@ -48,7 +48,7 @@ def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_rati
     output_clips_path = os.path.join(output_dir, "clips")
     os.makedirs(output_clips_path, exist_ok=True)
 
-    speakers = list(filter(lambda x: len(os.listdir(os.path.join(clips_path, x))) >= (clips_per_speaker * 2), VCTK_speakers.copy()))
+    speakers = list(filter(lambda x: len(os.listdir(os.path.join(clips_path, x))) > 600, VCTK_speakers.copy()))
     np.random.shuffle(speakers)
 
     test = speakers[-int(len(speakers) * test_ratio):]
@@ -77,7 +77,7 @@ def cv_to_intermediate_form(cv_original_path: str, output_dir: str, val_ratio: f
     output_clips_path = os.path.join(output_dir, "clips")
     os.makedirs(output_clips_path, exist_ok=True)
 
-    filtered = metadata[metadata.groupby("client_id").transform('size') >= clips_per_speaker]
+    filtered = metadata[metadata.groupby("client_id").transform('size') > 200]
     grouped = filtered.groupby("client_id")
 
     output_meta = pd.DataFrame(columns=["clip", "speaker", "split"])
@@ -130,7 +130,7 @@ def fma_to_intermediate_form(fma_original_path: str, metadata_path: str, output_
                     low = center - int((3 * 16000 // 2))
                     high = center + int((3 * 16000 // 2))
                     audio = audio[low:high]
-                record = pd.DataFrame(data=[{"clip": zfilled_id + ".wav", "category": genre, "split": split_names[i]}])
+                record = pd.DataFrame(data=[{"clip": zfilled_id + ".mp3", "class": genre, "split": split_names[i]}])
                 output_meta = pd.concat((output_meta, record), ignore_index=True)
                 sf.write(os.path.join(output_clips_path, zfilled_id + ".wav"), audio, samplerate=16000)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
@@ -166,8 +166,12 @@ def esc50_to_intermediate(esc_original_path: str, output_dir: str):
 
 
 if __name__ == "__main__":
-    # demand_to_intermediate_form("/home/aleks/magister/datasets/DEMAND/", "/home/aleks/magister/datasets/demand_intermediate/")
-    # vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/inter/vctk_intermediate/", clips_per_speaker=200)
-    # cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/inter/cv_intermediate", clips_per_speaker=200)
-    fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/inter/fma_intermediate", clips_per_class=200)
-    # esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")
+    pass
+    #demand_to_intermediate_form("../../demand", "../../demand_intermediate")
+    # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
+    # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
+    # vctk_to_intermediate_form("../../VCTK-Corpus", "../../vctk_intermediate")
+    # vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/vctk_intermediate/", clips_per_speaker=30)
+    # cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/cv_intermediate", clips_per_speaker=30)
+    # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
+    #esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")
