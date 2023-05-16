@@ -130,7 +130,7 @@ def fma_to_intermediate_form(fma_original_path: str, metadata_path: str, output_
                     low = center - int((3 * 16000 // 2))
                     high = center + int((3 * 16000 // 2))
                     audio = audio[low:high]
-                record = pd.DataFrame(data=[{"clip": zfilled_id + ".mp3", "class": genre, "split": split_names[i]}])
+                record = pd.DataFrame(data=[{"clip": zfilled_id + ".wav", "category": genre, "split": split_names[i]}])
                 output_meta = pd.concat((output_meta, record), ignore_index=True)
                 sf.write(os.path.join(output_clips_path, zfilled_id + ".wav"), audio, samplerate=16000)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
