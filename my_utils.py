@@ -130,7 +130,7 @@ def mix_with_snr(signal, noise, snr):
     rms_sig = rms(signal)
     rms_noise = rms(noise)
     rms_target = rms_sig / (10 ** (snr / 20))
-    generated = signal[0] + (noise * (rms_target / rms_noise))
+    generated = signal + (noise * (rms_target / rms_noise))
     return generated
 
 

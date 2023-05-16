@@ -5,7 +5,7 @@
     "in_memory_percentage": 1,
     "noise_only_percent": 0.1,
     "num_condition_classes": 29,
-    "path": "data/NSDTSEA/",
+    "path": "data/final_datasets/vctk_fma",
     "regain": 0.06,
     "sample_rate": 16000,
     "type": "nsdtsea"
@@ -62,9 +62,9 @@
       "out_1": {
         "l1": 1,
         "l2": 0,
-        "weight": 0,
+        "weight": 1,
         "sdr": {
-          "weight": 1
+          "weight": 0
         },
         "si-sdr": {
           "weight": 0
@@ -93,9 +93,9 @@
       "out_2": {
         "l1": 1,
         "l2": 0,
-        "weight": 0,
+        "weight": 1,
         "sdr": {
-          "weight": 1
+          "weight": 0
         },
         "si-sdr": {
           "weight": 0
@@ -123,9 +123,9 @@
       }
     },
     "num_epochs": 250,
-    "num_test_samples": 300,
-    "num_train_samples": 3000,
-    "path": "sessions/default_5_sdr_3000",
+    "num_test_samples": 100,
+    "num_train_samples": 1000,
+    "path": "sessions/default_5_vctk_fma",
     "verbosity": 1
   }
 }
