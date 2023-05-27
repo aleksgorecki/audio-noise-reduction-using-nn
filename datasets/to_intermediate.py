@@ -66,6 +66,13 @@ def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_rati
                 record = pd.DataFrame(data=[{"clip": clip.replace(".flac", ".wav"), "speaker": speaker, "split": split_names[i]}])
                 output_meta = pd.concat((output_meta, record), ignore_index=True)
                 audio = librosa.core.load(os.path.join(speaker_path, clip), sr=16000, mono=True)[0]
+                audio = librosa.util.normalize(audio)
+                audio, _ = librosa.effects.trim(audio, top_db=10, frame_length=256, hop_length=64)
+                if len(audio) / 16000 > 4.0:
+                    center = len(audio) // 2
+                    low = center - int((4 * 16000 // 2))
+                    high = center + int((4 * 16000 // 2))
+                    audio = audio[low:high]
                 sf.write(os.path.join(output_clips_path, clip.replace(".flac", ".wav")), audio, samplerate=16000)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
 
@@ -91,10 +98,11 @@ def cv_to_intermediate_form(cv_original_path: str, output_dir: str, val_ratio: f
                 record = pd.DataFrame(data=[{"clip": clip.replace(".mp3", ".wav"), "speaker": speaker, "split": split_names[i]}])
                 output_meta = pd.concat((output_meta, record), ignore_index=True)
                 audio = librosa.core.load(os.path.join(clips_dir, clip), sr=16000, mono=True)[0]
+                audio, _ = librosa.effects.trim(audio)
                 if len(audio) / 16000 > 4.0:
                     center = len(audio) // 2
-                    low = center - int((3 * 16000 // 2))
-                    high = center + int((3 * 16000 // 2))
+                    low = center - int((4 * 16000 // 2))
+                    high = center + int((4 * 16000 // 2))
                     audio = audio[low:high]
                 sf.write(os.path.join(output_clips_path, clip.replace(".mp3", ".wav")), audio, samplerate=16000)
 
@@ -171,7 +179,7 @@ if __name__ == "__main__":
     # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
     # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
     # vctk_to_intermediate_form("../../VCTK-Corpus", "../../vctk_intermediate")
-    # vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/vctk_intermediate/", clips_per_speaker=30)
-    # cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/cv_intermediate", clips_per_speaker=30)
+    vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/inter/vctk_intermediate/", clips_per_speaker=200)
+    #cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/inter/cv_intermediate", clips_per_speaker=200)
     # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
     #esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")

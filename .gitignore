@@ -4,6 +4,7 @@ venv
 speech_denoising_wavenet/sessions/*
 speech_denoising_wavenet/data/*
 speech_denoising_wavenet/sessions/*
+speech_denoising_wavenet/experiments/*
 speech_denoising_wavenet/data/*
 */__pycache__
 *.pyc

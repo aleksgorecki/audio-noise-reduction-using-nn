@@ -3,9 +3,9 @@
   "dataset": {
     "extract_voice": true,
     "in_memory_percentage": 1,
-    "noise_only_percent": 0.1,
+    "noise_only_percent": 0.0,
     "num_condition_classes": 29,
-    "path": "data/final_datasets/vctk_fma",
+    "path": "data/final_datasets/vctk_demand_2",
     "regain": 0.06,
     "sample_rate": 16000,
     "type": "nsdtsea"
@@ -13,7 +13,7 @@
   "model": {
     "condition_encoding": "binary",
     "no_conditioning": true,
-    "dilations": 5,
+    "dilations": 9,
     "filters": {
       "lengths": {
         "res": 3,
@@ -93,7 +93,7 @@
       "out_2": {
         "l1": 1,
         "l2": 0,
-        "weight": 1,
+        "weight": 0,
         "sdr": {
           "weight": 0
         },
@@ -125,7 +125,7 @@
     "num_epochs": 250,
     "num_test_samples": 100,
     "num_train_samples": 1000,
-    "path": "sessions/default_5_vctk_fma",
+    "path": "experiments/default_5_vctk_demand_2_9_dilations",
     "verbosity": 1
   }
 }

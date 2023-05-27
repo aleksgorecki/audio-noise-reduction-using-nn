@@ -212,10 +212,10 @@ class ControlWidget(QWidget):
 
         clean_data = librosa.core.load(clean_path, sr=16000, mono=True)
 
-        predicted, metrics = predict_example(self.noisy_input_data[0], clean_data[0], self.model, self.metrics_checkbox.isChecked())
+        predicted, metrics, clean_aligned = predict_example(self.noisy_input_data[0], clean_data[0], self.model, self.metrics_checkbox.isChecked())
 
         self.visual_widget.plot_predicted(predicted)
-        self.visual_widget.plot_clean(clean_data[0])
+        self.visual_widget.plot_clean(clean_aligned)
 
         print(metrics)
 
@@ -223,14 +223,20 @@ class ControlWidget(QWidget):
     @staticmethod
     def get_latest_checkpoint(checkpoints_dir):
         checkpoints = os.listdir(checkpoints_dir)
-        latest_checkpoint = max(checkpoints, key=lambda x: int(x[11:16]))
-        return os.path.join(checkpoints_dir, latest_checkpoint)
+        try:
+            latest_checkpoint = max(checkpoints, key=lambda x: int(x[11:16]))
+            return os.path.join(checkpoints_dir, latest_checkpoint)
+        except ValueError:
+            return checkpoints[0]
 
     @staticmethod
     def get_best_checkpoint(checkpoints_dir):
         checkpoints = os.listdir(checkpoints_dir)
-        best_checkpoint = min(checkpoints, key=lambda x: float(x[17:22]))
-        return os.path.join(checkpoints_dir, best_checkpoint)
+        try:
+            best_checkpoint = min(checkpoints, key=lambda x: float(x[17:22]))
+            return os.path.join(checkpoints_dir, best_checkpoint)
+        except ValueError:
+            return checkpoints[0]
 
     @staticmethod
     def set_label_empty(label: QLabel):

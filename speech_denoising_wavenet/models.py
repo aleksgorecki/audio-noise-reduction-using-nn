@@ -280,7 +280,7 @@ class DenoisingWavenet():
                                                  cooldown=self.config['training']['early_stopping_patience'] / 4,
                                                  verbose=1),
             tf.keras.callbacks.EarlyStopping(patience=self.config['training']['early_stopping_patience'], verbose=1,
-                                             monitor='loss'),
+                                             monitor='val_loss'),
             tf.keras.callbacks.ModelCheckpoint(
                 os.path.join(self.checkpoints_path, 'checkpoint.{epoch:05d}-{val_loss:.3f}.hdf5')),
             tf.keras.callbacks.CSVLogger(os.path.join(self.config['training']['path'], self.history_filename),
