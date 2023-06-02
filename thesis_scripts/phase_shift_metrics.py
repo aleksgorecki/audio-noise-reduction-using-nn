@@ -58,10 +58,10 @@ def plot_speechmetrics(clean, vertical):
     }
     colors = plt.rcParams["axes.prop_cycle"]()
     if vertical:
-        plotmets = ["mosnet", "stoi", "pesq", "sar", "srmr", "isr"]
+        plotmets = ["mosnet", "stoi", "pesq", "sisdr", "srmr", "isr"]
         fig, axs = plt.subplots(3, 2)
     else:
-        plotmets = ["mosnet", "pesq", "srmr", "stoi", "sar", "isr"]
+        plotmets = ["mosnet", "pesq", "srmr", "stoi", "sisdr", "isr"]
         fig, axs = plt.subplots(2, 3)
     for i, ax in enumerate(axs.flat):
         ax.plot(shifts, metrics_res[plotmets[i]], color=next(colors)["color"])

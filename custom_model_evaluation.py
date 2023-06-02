@@ -18,9 +18,9 @@ import pandas as pd
 import pathlib
 
 
-METRICS = ["mosnet", "srmr", "bsseval", "nb_pesq", "pesq", "sisdr", "stoi"]
+METRICS = ["bss", "sisdr", "stoi"]
 #METRICS = ["mosnet", "pesq", "stoi"]
-my_speechmetrics = speechmetrics.load(METRICS, window=2)
+my_speechmetrics = speechmetrics.load(METRICS, window=None)
 
 
 def mse(a, b):
@@ -155,6 +155,7 @@ def prepare_batch(example, model: DenoisingWavenet):
         condition_batch = np.array([condition_input, ] * len(batch), dtype='uint8')
     else:
         condition_batch = None
+
     return batch, condition_batch
     # for i, target_field_window_start in enumerate(list(range(0, num_output_samples, target_field_len))):
     #     if int(target_field_window_start + input_len) > num_output_samples:
@@ -246,8 +247,8 @@ def evaluate_example_wiener(example_noisy, example_clean):
 
 def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, normalize=False):
 
-    noisy_clips_dir = os.listdir(os.path.join(main_set, "noisy_testset_wav"))
-    noisy_meta = pd.read_csv(os.path.join(main_set, "metadata_test.csv"))
+    #noisy_clips_dir = os.listdir(os.path.join(main_set, "noisy_testset_wav"))
+    noisy_meta = pd.read_csv(os.path.join(main_set, "metadata_val.csv"))
     if max_files is not None:
         noisy_meta = noisy_meta.sample(n=max_files)
 
@@ -258,8 +259,8 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, norma
     ref_metrics_meta = pd.DataFrame(columns=["clip", "noise_category", "snr", "mae", "mse", "mae_in", "mse_in", "mosnet", "srmr", "bsseval", "nb_pesq", "pesq", "sisdr", "stoi"])
     for row in tqdm.tqdm(noisy_meta.iterrows()):
         file = row[1]["clip"]
-        noisy_file = os.path.join(main_set, "noisy_testset_wav", file)
-        clean_file = os.path.join(main_set, "clean_testset_wav", file)
+        noisy_file = os.path.join(main_set, "noisy_valset_wav", file)
+        clean_file = os.path.join(main_set, "clean_valset_wav", file)
         noisy, clean = load_example(noisy_file, clean_file, sr=model.config["dataset"]["sample_rate"])
 
         clean = librosa.util.normalize(clean)
@@ -321,9 +322,11 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, norma
                    }])
         ref_metrics_meta = pd.concat((ref_metrics_meta, ref_record), ignore_index=True)
 
-    os.makedirs(os.path.join(main_set, "evals"), exist_ok=True)
-    output_meta.to_csv(os.path.join(main_set, "evals", pathlib.Path(model.config["training"]["path"]).name + ".csv"))
-    ref_metrics_meta.to_csv(os.path.join(main_set, "evals", pathlib.Path(model.config["training"]["path"]).name + "_ref.csv"))
+    # os.makedirs(os.path.join(main_set, "evals"), exist_ok=True)
+    evals_path = os.path.join(model.config["training"]["path"], "evals", pathlib.Path(main_set).name)
+    os.makedirs(evals_path, exist_ok=True)
+    output_meta.to_csv(os.path.join(evals_path, "pred.csv"))
+    ref_metrics_meta.to_csv(os.path.join(evals_path, "ref.csv"))
     mean_metrics = calculate_mean_metrics(calculated_metrics)
     mean_metrics_ref = calculate_mean_metrics(calculated_ref)
     return mean_metrics, mean_metrics_ref
@@ -371,9 +374,9 @@ def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_
 
 
 if __name__ == "__main__":
-    dataset_path = "speech_denoising_wavenet/data/final_datasets/vctk_demand_2"
-    config_path = "speech_denoising_wavenet/experiments/default_5_vctk_demand_2_no_noise_only/config.json"
-    checkpoint_path = "speech_denoising_wavenet/experiments/default_5_vctk_demand_2_no_noise_only/checkpoints/checkpoint.00047--17.417.hdf5"
+    dataset_path = "speech_denoising_wavenet/data/final_datasets/vctk_art_hi"
+    config_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/config.json"
+    checkpoint_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/checkpoints/checkpoint.00060-0.445.hdf5"
 
     with open(config_path, "r") as f:
         config = json.load(f)

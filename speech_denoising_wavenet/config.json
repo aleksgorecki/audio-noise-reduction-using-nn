@@ -3,9 +3,9 @@
   "dataset": {
     "extract_voice": true,
     "in_memory_percentage": 1,
-    "noise_only_percent": 0.0,
+    "noise_only_percent": 0.1,
     "num_condition_classes": 29,
-    "path": "data/final_datasets/vctk_demand_2",
+    "path": "data/final_datasets/vctk_art_hi",
     "regain": 0.06,
     "sample_rate": 16000,
     "type": "nsdtsea"
@@ -13,7 +13,7 @@
   "model": {
     "condition_encoding": "binary",
     "no_conditioning": true,
-    "dilations": 9,
+    "dilations": 5,
     "filters": {
       "lengths": {
         "res": 3,
@@ -62,7 +62,7 @@
       "out_1": {
         "l1": 1,
         "l2": 0,
-        "weight": 1,
+        "weight": 0,
         "sdr": {
           "weight": 0
         },
@@ -71,15 +71,15 @@
         },
         "spec_param":
         {
-          "frame_len": 512,
-          "frame_step": 256,
-          "nfft": 1024
+          "frame_len": 128,
+          "frame_step": 64,
+          "nfft": 2048
         },
         "spectrogram": {
           "weight": 0
         },
         "spectral_convergence": {
-          "weight": 0
+          "weight": 1
         },
         "weighted_spectrogram": {
           "weight": 0,
@@ -102,15 +102,15 @@
         },
         "spec_param":
         {
-          "frame_len": 512,
-          "frame_step": 256,
-          "nfft": 1024
+          "frame_len": 128,
+          "frame_step": 64,
+          "nfft": 2048
         },
         "spectrogram": {
           "weight": 0
         },
         "spectral_convergence": {
-          "weight": 0
+          "weight": 1
         },
         "weighted_spectrogram": {
           "weight": 0,
@@ -125,7 +125,7 @@
     "num_epochs": 250,
     "num_test_samples": 100,
     "num_train_samples": 1000,
-    "path": "experiments/default_5_vctk_demand_2_9_dilations",
+    "path": "experiments/general/vctk_art_hi",
     "verbosity": 1
   }
 }

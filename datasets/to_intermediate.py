@@ -43,7 +43,7 @@ def demand_to_intermediate_form(demand_zipped_dir: str, output_dir: str, val_rat
                     sf.write(os.path.join(clips_dir, name), clip, samplerate=16000)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
 
-def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15, clips_per_speaker: int = 30):
+def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15, clips_per_speaker: int = 250):
     clips_path = os.path.join(vctk_original_path, "wav48_silence_trimmed")
     output_clips_path = os.path.join(output_dir, "clips")
     os.makedirs(output_clips_path, exist_ok=True)
@@ -61,19 +61,24 @@ def vctk_to_intermediate_form(vctk_original_path: str, output_dir: str, val_rati
         for speaker in split:
             speaker_path = os.path.join(clips_path, speaker)
             viable_clips = list(filter(lambda x: "mic2" not in x, os.listdir(speaker_path)))
-            chosen_clips = np.random.choice(viable_clips, clips_per_speaker, replace=False)
+            if split == "val":
+                viable_clips = sorted(viable_clips, key=lambda x: librosa.core.get_duration(filename=os.path.join(speaker_path, x)), reverse=True)
+                chosen_clips = viable_clips[:clips_per_speaker]
+            else:
+                chosen_clips = np.random.choice(viable_clips, clips_per_speaker, replace=False)
             for clip in chosen_clips:
-                record = pd.DataFrame(data=[{"clip": clip.replace(".flac", ".wav"), "speaker": speaker, "split": split_names[i]}])
-                output_meta = pd.concat((output_meta, record), ignore_index=True)
                 audio = librosa.core.load(os.path.join(speaker_path, clip), sr=16000, mono=True)[0]
                 audio = librosa.util.normalize(audio)
-                audio, _ = librosa.effects.trim(audio, top_db=10, frame_length=256, hop_length=64)
                 if len(audio) / 16000 > 4.0:
-                    center = len(audio) // 2
-                    low = center - int((4 * 16000 // 2))
-                    high = center + int((4 * 16000 // 2))
-                    audio = audio[low:high]
+                    audio, _ = librosa.effects.trim(audio, top_db=15, frame_length=256, hop_length=64)
+                    if len(audio) / 16000 > 4.0:
+                        center = len(audio) // 2
+                        low = center - int((4 * 16000 // 2))
+                        high = center + int((4 * 16000 // 2))
+                        audio = audio[low:high]
                 sf.write(os.path.join(output_clips_path, clip.replace(".flac", ".wav")), audio, samplerate=16000)
+                record = pd.DataFrame(data=[{"clip": clip.replace(".flac", ".wav"), "speaker": speaker, "split": split_names[i]}])
+                output_meta = pd.concat((output_meta, record), ignore_index=True)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
 
 
@@ -174,7 +179,6 @@ def esc50_to_intermediate(esc_original_path: str, output_dir: str):
 
 
 if __name__ == "__main__":
-    pass
     #demand_to_intermediate_form("../../demand", "../../demand_intermediate")
     # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
     # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
