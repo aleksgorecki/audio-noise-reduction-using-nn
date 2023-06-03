@@ -618,6 +618,8 @@ class DenoisingWavenet():
                                                  name='res_%d_dilated_conv_d%d_s%d' % (
                                                      res_block_i, dilation, stack_i),
                                                  activation=None)(data_x)
+        if self.use_dropout:
+            data_out = tf.keras.layers.Dropout(float(self.config["model"]["dropout"]["rate"]))(data_out)
 
         data_out_1 = layers.Slice(
             (Ellipsis, slice(
