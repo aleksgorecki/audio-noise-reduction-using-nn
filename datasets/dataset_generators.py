@@ -175,54 +175,54 @@ def generate_final_subset_match_all(noise_inter: str, clean_inter: str, output_d
 
 
 if __name__ == "__main__":
-    # noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_demand_hi/"
-    # split_name = "train"
-    # speakers_num = 40
-    # clips_per_speaker = 200
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_demand_hi/"
-    # split_name = "test"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_demand_hi/"
-    # split_name = "val"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-
+    noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
     clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_demand/"
     split_name = "train"
     speakers_num = 40
     clips_per_speaker = 200
-    SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+    SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
 
+    noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
     clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_demand/"
     split_name = "test"
     speakers_num = 10
     clips_per_speaker = 80
-    SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+    SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
 
+    noise_path = "/home/aleks/magister/datasets/inter/demand_intermediate"
     clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_demand/"
     split_name = "val"
     speakers_num = 10
     clips_per_speaker = 80
-    SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+    SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+
+    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
+    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    # split_name = "train"
+    # speakers_num = 40
+    # clips_per_speaker = 200
+    # SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+    #
+    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
+    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    # split_name = "test"
+    # speakers_num = 10
+    # clips_per_speaker = 80
+    # SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
+    #
+    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
+    # output_path = "/home/aleks/magister/datasets/final_datasets/vctk_art_hi/"
+    # split_name = "val"
+    # speakers_num = 10
+    # clips_per_speaker = 80
+    # SNRs = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]
+    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
 

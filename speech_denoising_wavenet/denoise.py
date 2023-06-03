@@ -3,7 +3,7 @@
 
 from __future__ import division
 import os
-import util
+import speech_denoising_wavenet.util as util
 import tqdm
 import numpy as np
 

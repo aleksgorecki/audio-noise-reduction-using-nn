@@ -6,10 +6,10 @@ import logging
 import optparse
 import json
 import os
-import models
-import datasets
-import util
-import denoise
+import speech_denoising_wavenet.models as models
+import speech_denoising_wavenet.datasets as datasets
+import speech_denoising_wavenet.util as util
+import speech_denoising_wavenet.denoise as denoise
 
 import tensorflow as tf
 

@@ -1,7 +1,7 @@
 # A Wavenet For Speech Denoising - Dario Rethage - 19.05.2017
 # Datasets.py
 
-import util
+import speech_denoising_wavenet.util as util
 import os
 import numpy as np
 import logging
