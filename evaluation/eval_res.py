@@ -397,8 +397,8 @@ def aproximmation_table():
 
 if __name__ == "__main__":
     # category_plot("/home/aleks/magister/datasets/final_datasets/vctk_demand/evals/default_5_vctk_demand.csv", "mae")
-    pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_art_hi/evals/vctk_art_hi/pred.csv"
-    ref_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_art_hi/evals/vctk_art_hi/ref.csv"
+    pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_demand/"
+    ref_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_demand/"
     metric_distribution(pred_path, ref_path, "sisdr")
     category_plot_same(pred_path, ref_path, "sisdr")
     snr_plot(pred_path, ref_path, "sisdr")
