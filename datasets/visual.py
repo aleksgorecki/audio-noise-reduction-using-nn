@@ -58,6 +58,7 @@ def plot_mel_spec(data, fs, title=None, show=True, save_path=None):
 
 def get_feature_vector(data, fs):
     data = librosa.util.normalize(data)
+
     mfcc = np.mean(librosa.feature.mfcc(y=data, sr=fs))
     zero_cross = np.mean(librosa.feature.zero_crossing_rate(y=data))
     return np.array([mfcc, zero_cross])
