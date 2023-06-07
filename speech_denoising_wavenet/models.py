@@ -8,6 +8,7 @@ import speech_denoising_wavenet.layers as layers
 import logging
 import tensorflow as tf
 import speech_denoising_wavenet.loss_plot_callback as loss_plot_callback
+import speech_denoising_wavenet.epoch_time_callback as epoch_time_callback
 from speech_denoising_wavenet.my_loss_functions import *
 
 
@@ -147,9 +148,17 @@ class DenoisingWavenet():
 
     def get_optimizer(self):
 
-        return tf.keras.optimizers.legacy.Adam(learning_rate=self.config['optimizer']['lr'],
-                                               decay=self.config['optimizer']['decay'],
-                                               epsilon=self.config['optimizer']['epsilon'])
+        if self.config['optimizer']["type"] == "adam":
+            return tf.keras.optimizers.legacy.Adam(learning_rate=self.config['optimizer']['lr'],
+                                                   decay=self.config['optimizer']['decay'],
+                                                   epsilon=self.config['optimizer']['epsilon'])
+        elif self.config['optimizer']["type"] == "sgd":
+            return tf.keras.optimizers.legacy.SGD(learning_rate=self.config['optimizer']['lr'])
+
+        elif self.config['optimizer']["type"] == "rmsprop":
+            return tf.keras.optimizers.legacy.RMSprop(learning_rate=self.config['optimizer']['lr'],
+                                                  decay=self.config['optimizer']['decay'],
+                                                  epsilon=self.config['optimizer']['epsilon'])
 
     def get_out_1_loss(self):
         #
@@ -287,6 +296,7 @@ class DenoisingWavenet():
                                          append=True),
             loss_plot_callback.LossPlotCallback(os.path.join(
                 self.config['training']['path'], 'loss_plots.png')),
+            epoch_time_callback.EpochTimeCallback(self.config['training']['path'])
         ]
 
     def fit_model(self, train_set_generator, num_train_samples, test_set_generator, num_test_samples, num_epochs):
