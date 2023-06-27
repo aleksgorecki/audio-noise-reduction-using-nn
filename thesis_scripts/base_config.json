@@ -75,8 +75,8 @@
         },
         "weighted_spectrogram": {
           "weight": 0,
-          "center_frequency": 2000,
-          "std": 500
+          "center_frequency": 1000,
+          "std": 3000
         },
         "rms": {
           "weight": 0
@@ -107,7 +107,7 @@
         "weighted_spectrogram": {
           "weight": 0,
           "center_frequency": 1000,
-          "std": 900
+          "std": 3000
         },
         "rms": {
           "weight": 0

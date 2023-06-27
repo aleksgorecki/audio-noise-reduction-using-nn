@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas
 import pandas as pd
 from datasets.dataset_constants import ESC50_CATEGORIES
 import scipy.stats
+import os
+import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 150
 
 #plt.style.use('seaborn-v0_8')
-
+#ax = plt.bar(rot=0, color={"DEMAND": "lightsalmon", "ESC-50": "gold", "FMA": "mediumpurple", "ART": "greenyellow"}, ec="gray")
+#colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
 
 METRIC_TITLES = {
     "mosnet": "MOSNET",
@@ -20,6 +25,12 @@ METRIC_TITLES = {
     "mse": "MSE",
     "mae": "MAE"
 }
+
+
+def read_csv_results(eval_dir: str):
+    ref = os.path.join(eval_dir, "ref.csv")
+    pred = os.path.join(eval_dir, "pred.csv")
+    return pd.read_csv(ref), pd.read_csv(pred)
 
 
 def category_plot(res_meta, ref_meta, metric):
@@ -39,8 +50,8 @@ def category_plot(res_meta, ref_meta, metric):
     scores = []
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
-    plt.bar(list(category_score_map.keys()), scores, color="lightpink", ec="gray")
-    plt.title("Referencja")
+    plt.bar(list(category_score_map.keys()), scores, color="salmon", ec="darkgray")
+    #plt.title("Referencja")
     plt.xticks(rotation=45)
 
     df = pd.read_csv(res_meta)
@@ -58,9 +69,9 @@ def category_plot(res_meta, ref_meta, metric):
     scores = []
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
-    plt.bar(list(category_score_map.keys()), scores, color="dodgerblue", ec="gray")
+    plt.bar(list(category_score_map.keys()), scores, color="slategray", ec="darkgray", width = 0.1)
     plt.xticks(rotation=45)
-    plt.title("Predykcja")
+    #plt.title("Predykcja")
 
 
 def category_plot_same(res_meta, ref_meta, metric):
@@ -69,7 +80,9 @@ def category_plot_same(res_meta, ref_meta, metric):
 
     plt.xticks(rotation=45)
     df = pd.read_csv(res_meta)
+
     df = df[["noise_category", metric]]
+    df = df[df["sisdr"] > -10]
     category_groups = df.groupby("noise_category")
     category_score_map = {}
     for name, group in category_groups:
@@ -82,11 +95,39 @@ def category_plot_same(res_meta, ref_meta, metric):
     scores = []
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
-    plt.bar(list(category_score_map.keys()), scores, color="orange", ec="gray", alpha=0.5)
+
+    # categories = []
+    # scores = []
+    # inverse_top_category_dict = dict()
+    # for key in ESC50_CATEGORIES.keys():
+    #     for category in ESC50_CATEGORIES[key]:
+    #         inverse_top_category_dict.update({category: key})
+    # for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
+    #     subcategory_scores = []
+    #     for category in category_score_map.keys():
+    #         if inverse_top_category_dict[category] == top_category:
+    #             subcategory_scores.append(category_score_map[category])
+    #     categories.append(top_category)
+    #     scores.append(np.mean(subcategory_scores))
+        # if i >= len(list(ESC50_CATEGORIES.keys())):
+        #     break
+        # top_category = list(ESC50_CATEGORIES.keys())[i]
+        # categories = []
+        # scores = []
+        # for key in category_score_map.keys():
+        #     if inverse_top_category_dict[key] == top_category:
+        #         categories.append(key)
+        #         scores.append(category_score_map[key])
+    # categories = ["Animals", "Natural", "Human", "Interior", "Exterior"]
+    # plt.bar(categories, scores, color="goldenrod", ec="gray", alpha=1)
+    # plt.xticks(rotation=45)
+
+    plt.bar(list(category_score_map.keys()), scores, color="yellowgreen", ec="darkgray", alpha=1, width = 0.3)
     plt.xticks(rotation=45)
 
     df = pd.read_csv(ref_meta)
     df = df[["noise_category", metric]]
+    df = df[df["sisdr"] > -10]
     category_groups = df.groupby("noise_category")
     category_score_map = {}
     for name, group in category_groups:
@@ -97,14 +138,32 @@ def category_plot_same(res_meta, ref_meta, metric):
             category_score_map.update({name: np.mean(group[metric].tolist())})
 
 
+
+    # scores = []
+    # inverse_top_category_dict = dict()
+    # for key in ESC50_CATEGORIES.keys():
+    #     for category in ESC50_CATEGORIES[key]:
+    #         inverse_top_category_dict.update({category: key})
+    # for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
+    #     subcategory_scores = []
+    #     for category in category_score_map.keys():
+    #         if inverse_top_category_dict[category] == top_category:
+    #             subcategory_scores.append(category_score_map[category])
+    #     scores.append(np.mean(subcategory_scores))
+    # for key in category_score_map.keys():
+    #     scores.append(category_score_map[key])
+    #plt.bar(categories, scores, color="cornflowerblue", ec="gray", alpha=1)
     scores = []
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
-    plt.bar(list(category_score_map.keys()), scores, color="dodgerblue", ec="gray", alpha=0.5)
+    plt.bar(list(category_score_map.keys()), scores, color="slategray", ec="darkgray", alpha=1, width = 0.3)
     plt.tight_layout()
-    plt.legend(["predykcja", "referencja"])
-    plt.xlabel("Kategoria zakłóceń")
+    #fig.set_size_inches(9, 7.2)
+    plt.tight_layout()
+    plt.legend(["po redukcji", "przed redukcją"], loc="lower right")
+    plt.xlabel("kategoria zakłóceń")
     plt.ylabel("średnia SI-SDR")
+    plt.savefig("/home/aleks/Desktop/artcategoryplot.png")
 
 
 
@@ -113,6 +172,7 @@ def snr_plot(res_meta, ref_meta, metric):
     fig, ax = plt.subplots()
 
     df = pd.read_csv(ref_meta)
+    df = df[df["sisdr"] > -10]
     df = df[["snr", metric]]
     snr_groups = df.groupby("snr")
     snr_score_map = {}
@@ -127,11 +187,12 @@ def snr_plot(res_meta, ref_meta, metric):
     scores = []
     for key in snr_score_map.keys():
         scores.append(snr_score_map[key])
-    plt.plot(list(snr_score_map.keys()), scores, marker="o", color="dodgerblue")
+    plt.plot(list(snr_score_map.keys()), scores, marker="o", color="slategray")
     plt.xticks(list(snr_score_map.keys()))
 
 
     df = pd.read_csv(res_meta)
+    df = df[df["sisdr"] > -10]
     df = df[["snr", metric]]
     snr_groups = df.groupby("snr")
     snr_score_map = {}
@@ -146,13 +207,13 @@ def snr_plot(res_meta, ref_meta, metric):
     for key in snr_score_map.keys():
         scores.append(snr_score_map[key])
     #plt.plot(list(snr_score_map.keys()), scores)
-    plt.plot(list(snr_score_map.keys()), scores, marker="o", color="orange")
+    plt.plot(list(snr_score_map.keys()), scores, marker="o", color="yellowgreen")
     plt.xticks(list(snr_score_map.keys()))
 
     plt.legend(["przed redukcją", "po redukcji"])
-    plt.xlabel("SNR przykładów")
+    plt.xlabel("SNR zmieszania sygnałów")
     plt.ylabel("średnia SI-SDR")
-    plt.grid()
+    plt.savefig("/home/aleks/Desktop/artsnrplot.png")
 
 
 def draw_histogram(data, n_bins, hist_color, sisdr=True):
@@ -164,8 +225,8 @@ def draw_histogram(data, n_bins, hist_color, sisdr=True):
 
     fig, ax = plt.subplots()
     plt.hist(data, bins=n_bins, ec="gray", color=hist_color)
-    ax.axvline(mean, color='red', linewidth=2)
-    ax.axvline(np.median(data), color="green", linewidth=2)
+    ax.axvline(mean, color='midnightblue', linewidth=2)
+    ax.axvline(np.median(data), color="midnightblue", linewidth=2)
 
 
 
@@ -175,7 +236,7 @@ def draw_histogram(data, n_bins, hist_color, sisdr=True):
         xoff = 15
 
     align = 'left' if xoff > 0 else 'right'
-    ax.annotate('Średnia: {:0.2f}'.format(mean), xy=(mean, 1), xytext=(xoff, 15),
+    ax.annotate('średnia: {:0.2f}'.format(mean), xy=(mean, 1), xytext=(xoff, 15),
                 xycoords=('data', 'axes fraction'), textcoords='offset points',
                 horizontalalignment=align, verticalalignment='center',
                 arrowprops=dict(arrowstyle='-|>', fc='black', shrinkA=0, shrinkB=0,
@@ -185,29 +246,36 @@ def draw_histogram(data, n_bins, hist_color, sisdr=True):
     xoff = -xoff
 
     align = 'left' if xoff > 0 else 'right'
-    ax.annotate('Mediana: {:0.2f}'.format(np.median(data)), xy=(np.median(data), 1), xytext=(xoff, 15),
+    ax.annotate('mediana: {:0.2f}'.format(np.median(data)), xy=(np.median(data), 1), xytext=(xoff, 15),
                 xycoords=('data', 'axes fraction'), textcoords='offset points',
                 horizontalalignment=align, verticalalignment='center',
                 arrowprops=dict(arrowstyle='-|>', fc='black', shrinkA=0, shrinkB=0,
                                 connectionstyle='angle,angleA=0,angleB=90,rad=10'),
                 )
 
-    plt.xlabel("Wartość SI-SDR")
-    plt.ylabel("Liczba przykładów")
+    plt.xlabel("wartość SI-SDR")
+    plt.ylabel("liczba przykładów")
 
 
 def metric_distribution(res_meta, ref_meta, metric):
+
     df = pd.read_csv(ref_meta)
+
+    df = df[df["sisdr"] > -5]
     df = df[[metric]]
     scores = df.values.tolist()
     ref_scores = [x[0] for x in scores]
     df = pd.read_csv(res_meta)
+    print(df.query("sisdr < -5"))
+    df = df[df["sisdr"] > -5]
     df = df[[metric]]
     scores = df.values.tolist()
     pred_scores = [x[0] for x in scores]
 
-    draw_histogram(ref_scores, 50, "dodgerblue")
-    draw_histogram(pred_scores, 50, "orange")
+    draw_histogram(ref_scores, 50, "slategray")
+    plt.savefig("/home/aleks/Desktop/artdistref.png")
+    draw_histogram(pred_scores, 50, "yellowgreen")
+    plt.savefig("/home/aleks/Desktop/artdistpred.png")
 
 
 
@@ -334,6 +402,12 @@ def sisdr_mean(vals):
     return lin_to_sisdr(mean)
 
 
+def sisdr_pandas_mean(df):
+    vals = []
+    for val in df.values.tolist():
+        vals.append(val[0])
+    return np.around(sisdr_mean(vals), decimals=4)
+
 def res_csv_to_mean(csv, metric="sisdr"):
     df = pd.read_csv(csv)
     df = df[[metric]]
@@ -394,14 +468,679 @@ def aproximmation_table():
     print(maindf.to_latex(index=False, float_format="%.3f"))
 
 
+def dilation_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
+    refs = []
+    refs.append("Przed redukcją")
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{1}/evals/vctk_{dataset}/"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        refs.append(
+            sisdr_pandas_mean(ref)
+        )
+    df.loc[len(df.index)] = refs
+
+
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+def dilation_plot():
+
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            d[dataset].append(sisdr_pandas_mean(pred))
+    colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
+    fig, ax = plt.subplots()
+    for i, dataset in enumerate(["demand", "esc50", "fma", "art"]):
+        plt.plot([1, 3, 5, 7, 9], d[dataset], marker = "o", color=colors[i])
+    plt.legend(["DEMAND", "ESC-50", "FMA", "ART"])
+    plt.xticks([1, 3, 5, 7, 9])
+    plt.xlabel("Liczba rozszerzeń konwolucji")
+    plt.ylabel("średnia SI-SDR")
+    #plt.grid()
+    plt.savefig("/home/aleks/Desktop/dilationsplot.png", dpi=300)
+    plt.show()
+
+
+def dropout_plot():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
+    # refs = []
+    # refs.append("Przed redukcją")
+    # for dataset in ["demand", "esc50", "fma", "art"]:
+    #     path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{1}/evals/vctk_{dataset}/"
+    #     ref, pred = read_csv_results(path)
+    #     ref = ref[["sisdr"]]
+    #     refs.append(
+    #         np.mean(ref)
+    #     )
+    # df.loc[len(df.index)] = refs
+
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+
+    for i in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/dropout/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            d[dataset].append(sisdr_pandas_mean(pred))
+    colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
+    fig, ax = plt.subplots()
+    for i, dataset in enumerate(["demand", "esc50", "fma", "art"]):
+        plt.plot([0.1, 0.2, 0.3, 0.4, 0.5], d[dataset], marker = "o", color=colors[i])
+    plt.legend(["DEMAND", "ESC-50", "FMA", "ART"])
+    plt.xticks([0.1, 0.2, 0.3, 0.4, 0.5])
+    plt.xlabel("Współczynnik wartswy dropout")
+    plt.ylabel("średnia SI-SDR")
+    #plt.grid()
+    plt.savefig("/home/aleks/Desktop/dropoutplot.png", dpi=300)
+    plt.show()
+
+
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+
+def dropout_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
+    # refs = []
+    # refs.append("Przed redukcją")
+    # for dataset in ["demand", "esc50", "fma", "art"]:
+    #     path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{1}/evals/vctk_{dataset}/"
+    #     ref, pred = read_csv_results(path)
+    #     ref = ref[["sisdr"]]
+    #     refs.append(
+    #         np.mean(ref)
+    #     )
+    # df.loc[len(df.index)] = refs
+
+    for i in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/dropout/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+def default_values():
+    df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
+    vals = []
+    refs = []
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_{dataset}/evals/vctk_{dataset}/"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        refs.append(sisdr_pandas_mean(ref))
+        vals.append(sisdr_pandas_mean(pred))
+    df.loc[len(df.index)] = vals
+    df.loc[len(df.index)] = refs
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+
+def loss_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    for i in losses:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/loss/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+def loss_plot():
+    df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
+    losses = ["l1", "l2", "sdr", "spectrogram", "weighted_spectrogram", "spectral_convergence"]
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+    for i in losses:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/loss/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+            d[dataset].append(sisdr_pandas_mean(pred))
+
+    losses = ["$\mathregular{L}_\mathregular{MAE}$", "$\mathregular{L}_\mathregular{MSE}$", "$\mathregular{L}_\mathregular{SDR}$", "$\mathregular{L}_\mathregular{M}$", "$\mathregular{L}_\mathregular{WM}$", "$\mathregular{L}_\mathregular{SC}$"]
+    df2 = pd.DataFrame({'DEMAND': d["demand"],
+                       'ESC-50': d["esc50"],
+                        'FMA': d["fma"],
+                        "ART": d["art"]}
+                      , index=losses)
+    ax = df2.plot.bar(rot=0, color={"DEMAND": "lightsalmon", "ESC-50": "gold", "FMA": "mediumpurple", "ART": "greenyellow"}, ec="gray")
+    plt.legend(loc="lower right")
+    plt.xlabel("funkcja celu")
+    plt.ylabel("średnia SI-SDR")
+    plt.savefig("/home/aleks/Desktop/lossplot.png", dpi=300)
+    plt.show()
+    pass
+
+
+def optim_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["adam", "rmsprop", "sgd"]
+    for i in optims:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/optim/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+def optim_plot():
+    df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["adam", "rmsprop", "sgd"]
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+    for i in optims:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/optim/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+            d[dataset].append(sisdr_pandas_mean(pred))
+
+    optims = ["Adam", "RMSProp", "SGD"]
+    df2 = pd.DataFrame({'DEMAND': d["demand"],
+                       'ESC-50': d["esc50"],
+                        'FMA': d["fma"],
+                        "ART": d["art"]}
+                      , index=optims)
+    ax = df2.plot.bar(rot=0, color={"DEMAND": "lightsalmon", "ESC-50": "gold", "FMA": "mediumpurple", "ART": "greenyellow"}, ec="gray")
+    plt.legend(loc="best")
+    plt.xlabel("algorytm optymalizacji")
+    plt.ylabel("średnia SI-SDR")
+    plt.savefig("/home/aleks/Desktop/optplot.png", dpi=300)
+    plt.show()
+    pass
+
+
+def lr_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["1e-05", "0.0001", "0.001", "0.01"]
+    for i in optims:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/lr/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+def lr_plot():
+    df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["1e-05", "0.0001", "0.001"]
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+    for i in optims:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/lr/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+            d[dataset].append(sisdr_pandas_mean(pred))
+
+    optims = ["1e-05", "1e-04", "1e-03"]
+    df2 = pd.DataFrame({'DEMAND': d["demand"],
+                       'ESC-50': d["esc50"],
+                        'FMA': d["fma"],
+                        "ART": d["art"]}
+                      , index=optims)
+    ax = df2.plot.bar(rot=0, color={"DEMAND": "lightsalmon", "ESC-50": "gold", "FMA": "mediumpurple", "ART": "greenyellow"}, ec="gray")
+    plt.legend(loc="best")
+    plt.xlabel("współczynnik uczenia")
+    plt.ylabel("średnia SI-SDR")
+    plt.legend(loc="lower right")
+    plt.savefig("/home/aleks/Desktop/lrplot.png")
+    plt.show()
+    pass
+
+
+def approx_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA"])
+    vals = []
+    vals.append("dedykowany")
+    for dataset in ["demand", "esc50", "fma"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_{dataset}/evals/vctk_{dataset}"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        vals.append(sisdr_pandas_mean(pred))
+    df.loc[len(df.index)] = vals
+    vals = []
+    vals.append("aproksymacja")
+    for dataset in ["demand", "esc50", "fma"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_art/evals/vctk_{dataset}/"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        vals.append(sisdr_pandas_mean(pred))
+    df.loc[len(df.index)] = vals
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+def reverb_tables():
+
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    vals = []
+    vals.append("przed")
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_{dataset}/evals/vctk_{dataset}_reverb"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        vals.append(sisdr_pandas_mean(ref))
+    df.loc[len(df.index)] = vals
+    vals = []
+    vals.append("domyślny")
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_{dataset}/evals/vctk_{dataset}_reverb"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        vals.append(sisdr_pandas_mean(pred))
+    df.loc[len(df.index)] = vals
+    vals = []
+    vals.append("z pogłosem")
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/databased/reverb/vctk_{dataset}_reverb/evals/vctk_{dataset}_reverb"
+        ref, pred = read_csv_results(path)
+        ref = ref[["sisdr"]]
+        pred = pred[["sisdr"]]
+        vals.append(sisdr_pandas_mean(pred))
+    df.loc[len(df.index)] = vals
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+def batch_table():
+    df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["2", "5", "10"]
+    for i in optims:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/lr/vctk_{dataset}_{i}/evals/vctk_{dataset}/"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(np.mean(pred))
+        df.loc[len(df.index)] = vals
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+
+def language_tables():
+    dfvctk = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["vctk", "cv"]
+    for i in optims:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_{dataset}/evals/{i}_{dataset}"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        dfvctk.loc[len(dfvctk.index)] = vals
+
+    print(dfvctk.to_latex(index=False, float_format="%.2f"))
+
+    dfcv = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
+    optims = ["vctk", "cv"]
+    for i in optims:
+        vals = []
+        vals.append(i)
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/databased/lang/cv_{dataset}/evals/{i}_{dataset}"
+            ref, pred = read_csv_results(path)
+            ref = ref[["sisdr"]]
+            pred = pred[["sisdr"]]
+            vals.append(sisdr_pandas_mean(pred))
+        dfcv.loc[len(dfcv.index)] = vals
+
+    print(dfcv.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+def category_plot_same_esc2(res_meta, ref_meta, metric):
+
+    fig, ax = plt.subplots()
+
+    plt.xticks(rotation=45)
+    df = pd.read_csv(res_meta)
+
+    df = df[["noise_category", metric]]
+    df = df[df["sisdr"] > -10]
+    category_groups = df.groupby("noise_category")
+    category_score_map = {}
+    for name, group in category_groups:
+        if metric == "sisdr":
+            mean = sisdr_mean(group[metric].tolist())
+            category_score_map.update({name: mean})
+        else:
+            category_score_map.update({name: np.mean(group[metric].tolist())})
+
+    scores = []
+    for key in category_score_map.keys():
+        scores.append(category_score_map[key])
+
+    categories = []
+    scores = []
+    inverse_top_category_dict = dict()
+    for key in ESC50_CATEGORIES.keys():
+        for category in ESC50_CATEGORIES[key]:
+            inverse_top_category_dict.update({category: key})
+    for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
+        subcategory_scores = []
+        for category in category_score_map.keys():
+            if inverse_top_category_dict[category] == top_category:
+                subcategory_scores.append(category_score_map[category])
+        categories.append(top_category)
+        scores.append(sisdr_mean(subcategory_scores))
+
+    categories = ["Animals", "Natural", "Human", "Interior", "Exterior"]
+    plt.bar(categories, scores, color="gold", ec="darkgray", alpha=1, width=0.4)
+    plt.xticks(rotation=45)
+
+
+    df = pd.read_csv(ref_meta)
+    df = df[["noise_category", metric]]
+    df = df[df["sisdr"] > -10]
+    category_groups = df.groupby("noise_category")
+    category_score_map = {}
+    for name, group in category_groups:
+        if metric == "sisdr":
+            mean = sisdr_mean(group[metric].tolist())
+            category_score_map.update({name: mean})
+        else:
+            category_score_map.update({name: np.mean(group[metric].tolist())})
+
+
+
+    scores = []
+    inverse_top_category_dict = dict()
+    for key in ESC50_CATEGORIES.keys():
+        for category in ESC50_CATEGORIES[key]:
+            inverse_top_category_dict.update({category: key})
+    for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
+        subcategory_scores = []
+        for category in category_score_map.keys():
+            if inverse_top_category_dict[category] == top_category:
+                subcategory_scores.append(category_score_map[category])
+        categories.append(top_category)
+        scores.append(sisdr_mean(subcategory_scores))
+    categories = ["Animals", "Natural", "Human", "Interior", "Exterior"]
+    plt.bar(categories, scores, color="slategray", ec="darkgray", alpha=1, width=0.4)
+    scores = []
+    #fig.set_size_inches(9, 7.2)
+    plt.tight_layout()
+    plt.legend(["po redukcji", "przed redukcją"], loc="lower right")
+    plt.xlabel("kategoria zakłóceń")
+    plt.ylabel("średnia SI-SDR")
+    plt.show()
+    plt.savefig("/home/aleks/Desktop/esc50categoryplot.png")
+
+
+def training_times_plot():
+    times = []
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/epoch_times.csv"
+            df = pd.read_csv(path)
+            vals.append(np.mean(df[["times"]]))
+        times.append(np.mean(vals))
+    colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
+    fig, ax = plt.subplots()
+    plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="dodgerblue")
+    plt.xticks([1, 3, 5, 7, 9])
+    plt.xlabel("liczba rozszerzeń konwolucji")
+    plt.ylabel("śr. czas trwania epoki uczenia [s]")
+    #plt.grid()
+    plt.savefig("/home/aleks/Desktop/dilationstrainingtimeplot.png", dpi=300)
+    plt.show()
+
+
+def training_times_tab():
+    times = []
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/epoch_times.csv"
+            df = pd.read_csv(path)
+            vals.append(np.mean(df[["times"]]))
+        times.append(np.mean(vals))
+        print(i)
+    # fig, ax = plt.subplots()
+    df = pandas.DataFrame()
+
+    s1 = pd.Series([1, 3, 5, 7, 9], name='$d$')
+    s2 = pd.Series(times, name='śr. czas trwania epoki uczenia [s]')
+    df = pd.concat([s1, s2], axis=1)
+
+    # plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="dodgerblue")
+    # plt.xticks([1, 3, 5, 7, 9])
+    # plt.xlabel("liczba rozszerzeń konwolucji")
+    # plt.ylabel("uśredniony czas trwania jednej epoki uczenia [s]")
+    # #plt.grid()
+    # plt.savefig("/home/aleks/Desktop/dilationstimeplot.png", dpi=300)
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+def pred_times_tab():
+    times = []
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/pred_times.csv"
+            df = pd.read_csv(path)
+            vals.append(np.mean(df[["pred_times"]]))
+        times.append(np.mean(vals))
+        print(i)
+    # fig, ax = plt.subplots()
+    df = pandas.DataFrame()
+
+    s1 = pd.Series([1, 3, 5, 7, 9], name='$d$')
+    s2 = pd.Series(times, name='śr. czas odszumiania [s]')
+    df = pd.concat([s1, s2], axis=1)
+
+    # plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="dodgerblue")
+    # plt.xticks([1, 3, 5, 7, 9])
+    # plt.xlabel("liczba rozszerzeń konwolucji")
+    # plt.ylabel("uśredniony czas trwania jednej epoki uczenia [s]")
+    # #plt.grid()
+    # plt.savefig("/home/aleks/Desktop/dilationstimeplot.png", dpi=300)
+    print(df.to_latex(index=False, float_format="%.2f"))
+
+
+def pred_times_plot():
+    times = []
+    for i in [1, 3, 5, 7, 9]:
+        vals = []
+        for dataset in ["demand", "esc50", "fma", "art"]:
+            path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}/pred_times.csv"
+            df = pd.read_csv(path)
+            vals.append(np.mean(df[["pred_times"]]))
+        times.append(np.mean(vals))
+    colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
+    fig, ax = plt.subplots()
+    plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="forestgreen")
+    plt.xticks([1, 3, 5, 7, 9])
+    plt.xlabel("liczba rozszerzeń konwolucji")
+    plt.ylabel("śr. czas odszumiania [s]")
+    #plt.grid()
+    plt.savefig("/home/aleks/Desktop/dilationspredtimeplot.png", dpi=300)
+    plt.show()
+
+
+
+def loss_table_mosnet():
+    df = pd.DataFrame(columns=["$d$", "śr. MOS"])
+    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    for i in losses:
+        vals = []
+        vals.append(i)
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/loss/vctk_art_{i}/evals/vctk_art_long/"
+        ref, pred = read_csv_results(path)
+        ref = ref[["mosnet"]]
+        pred = pred[["mosnet"]]
+        vals.append(sisdr_pandas_mean(pred))
+        df.loc[len(df.index)] = vals
+
+
+    print(df.to_latex(index=False, float_format="%.2f"))
+    pass
+
+
+def loss_plot_mosnet():
+    df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
+    losses = ["l1", "l2", "sdr", "spectrogram", "weighted_spectrogram", "spectral_convergence"]
+    d = {
+        "demand": [],
+        "esc50": [],
+        "fma": [],
+        "art": []
+    }
+    vals = []
+    for i in losses:
+        path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/hiper/loss/vctk_art_{i}/evals/vctk_art_long/"
+        ref, pred = read_csv_results(path)
+        ref = ref[["mosnet"]]
+        pred = pred[["mosnet"]]
+        vals.append(np.mean(pred))
+
+    losses = ["$\mathregular{L}_\mathregular{MAE}$", "$\mathregular{L}_\mathregular{MSE}$", "$\mathregular{L}_\mathregular{SDR}$", "$\mathregular{L}_\mathregular{M}$", "$\mathregular{L}_\mathregular{WM}$", "$\mathregular{L}_\mathregular{SC}$"]
+    ax = plt.bar(losses, vals, color="cornflowerblue", ec="darkgray", width=0.4)
+    plt.legend(loc="lower right")
+    plt.xlabel("funkcja celu")
+    plt.ylabel("śr. MOS")
+    plt.savefig("/home/aleks/Desktop/mosnetlossplot.png", dpi=300)
+    plt.show()
+    pass
+
 
 if __name__ == "__main__":
+    # training_times_plot()
+    # pred_times_tab()
+    # pred_times_plot()
+    # loss_table_mosnet()
+    # loss_plot_mosnet()
+    #training_times_plot()
+    #training_times_tab()
     # category_plot("/home/aleks/magister/datasets/final_datasets/vctk_demand/evals/default_5_vctk_demand.csv", "mae")
-    pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_demand/evals/vctk_demand/pred.csv"
-    ref_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_demand/evals/vctk_demand/ref.csv"
-    metric_distribution(pred_path, ref_path, "sisdr")
-    category_plot_same(pred_path, ref_path, "sisdr")
-    snr_plot(pred_path, ref_path, "sisdr")
-    plt.show()
+    #pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/pred.csv"
+    #ref_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/ref.csv"
+    #metric_distribution(pred_path, ref_path, "sisdr")
+    #category_plot_same_esc2(pred_path, ref_path, "sisdr")
+    # snr_plot(pred_path, ref_path, "sisdr")
+    # plt.show()
+    #plt.show()
     # general_table()
     # aproximmation_table()
+    # dilation_table()
+    # dilation_plot()
+    # default_values()
+    # dropout_table()
+    # dropout_plot()
+    # loss_table()
+    # loss_plot()
+    # optim_table()
+    # optim_plot()
+    # lr_table()
+    # lr_plot()
+    # language_tables()
+    # approx_table()
+    # reverb_tables()
+    dropout_plot()
+    #loss_plot_mosnet()
+    # pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/ref.csv"
+    # df = pd.read_csv(pred_path)
+    # df = df[["sisdr"]]
+    # print(np.mean(df.values.tolist()))

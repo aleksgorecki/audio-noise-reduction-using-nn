@@ -38,8 +38,8 @@ def dilations_train():
 
 
 def loss_train(config):
-    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
-
+    #losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    losses = ["weighted_spectrogram"]
     def set_weights_to_0(config):
         for loss in losses:
             for out in ["out_1", "out_2"]:
@@ -91,7 +91,8 @@ def opt_train(config):
 
 
 def lr_train(config):
-    for lr in [0.0001, 0.001, 0.01]:
+    for lr in [0.00001]:
+    #for lr in [0.0001, 0.001, 0.01]:
         for dataset in ["demand", "esc50", "fma", "art"]:
             config["optimizer"]["lr"] = lr
             config["dataset"]["path"] = f"data/final_datasets/general/vctk_{dataset}"
@@ -115,7 +116,7 @@ def batch_train(config):
 
 
 def dropout_train(config):
-    for rate in [0.1, 0.3, 0.5]:
+    for rate in [0.3, 0.4, 0.5]:
         for dataset in ["demand", "esc50", "fma", "art"]:
             config["model"]["dropout"]["use"] = True
             config["model"]["dropout"]["rate"] = rate
@@ -137,7 +138,9 @@ def reverb_train(config):
         subprocess.call(["python", "main.py", "--config", "temp_config.json"])
         print(f"{dataset} done")
 
-reverb_train(base_config)
+#dropout_train(base_config)
+lr_train(base_config)
+# reverb_train(base_config)
 #
 # config["dataset"]["path"] = "data/final_datasets/general/vctk_demand"
 # config["training"]["path"] = "experiments/general/vctk_demand"

@@ -18,9 +18,9 @@ import pandas as pd
 import pathlib
 
 
-METRICS = ["bss", "sisdr", "stoi"]
-#METRICS = ["mosnet", "pesq", "stoi"]
-my_speechmetrics = speechmetrics.load(METRICS, window=None)
+#METRICS = ["sisdr"]
+METRICS = ["mosnet", "pesq", "sisdr"]
+my_speechmetrics = speechmetrics.load(METRICS, window=2.0)
 
 
 def mse(a, b):
@@ -263,11 +263,14 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, norma
         clean_file = os.path.join(main_set, "clean_valset_wav", file)
         noisy, clean = load_example(noisy_file, clean_file, sr=model.config["dataset"]["sample_rate"])
 
-        clean = librosa.util.normalize(clean)
-        noisy = librosa.util.normalize(noisy)
-        # clean, trim_indx = librosa.effects.trim(clean, top_db=10, frame_length=256, hop_length=64)
+        if len(noisy) < model.input_length:
+            continue
+
+        # clean = librosa.util.normalize(clean)
+        # noisy = librosa.util.normalize(noisy)
+        # clean, trim_indx = librosa.effects.trim(clean, top_db=5, frame_length=256, hop_length=64)
         # noisy = noisy[trim_indx[0]:trim_indx[1]]
-        # if (len(clean) < 2 * 16000):
+        # if (len(clean) < int(2.9 * 16000.0)):
         #     continue
 
         example_metrics, ref_metrics = evaluate_example(noisy, clean, model, normalize=normalize)
@@ -374,20 +377,21 @@ def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_
 
 
 if __name__ == "__main__":
-    dataset_path = "speech_denoising_wavenet/data/final_datasets/vctk_art_hi"
-    config_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/config.json"
-    checkpoint_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/checkpoints/checkpoint.00060-0.445.hdf5"
-
-    with open(config_path, "r") as f:
-        config = json.load(f)
-
-        config["training"]["path"] = os.path.join("speech_denoising_wavenet", config["training"]["path"])
-        model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
-        start = time.time()
-        metrics, ref = evaluate_on_testset(dataset_path, model, max_files=None)
-        end = time.time()
-        print(end - start, " s")
-        print("ref: ")
-        print(ref)
-        print("pred: ")
-        print(metrics)
+    pass
+    # dataset_path = "speech_denoising_wavenet/data/final_datasets/vctk_art_hi"
+    # config_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/config.json"
+    # checkpoint_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/checkpoints/checkpoint.00060-0.445.hdf5"
+    #
+    # with open(config_path, "r") as f:
+    #     config = json.load(f)
+    #
+    #     config["training"]["path"] = os.path.join("speech_denoising_wavenet", config["training"]["path"])
+    #     model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
+    #     start = time.time()
+    #     metrics, ref = evaluate_on_testset(dataset_path, model, max_files=None)
+    #     end = time.time()
+    #     print(end - start, " s")
+    #     print("ref: ")
+    #     print(ref)
+    #     print("pred: ")
+    #     print(metrics)

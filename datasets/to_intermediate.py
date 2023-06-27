@@ -178,12 +178,47 @@ def esc50_to_intermediate(esc_original_path: str, output_dir: str):
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
 
 
+
+def vctk_to_intermediate_form_long(vctk_original_path: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15, clips_per_speaker: int = 250):
+    clips_path = os.path.join(vctk_original_path, "wav48_silence_trimmed")
+    output_clips_path = os.path.join(output_dir, "clips")
+    os.makedirs(output_clips_path, exist_ok=True)
+
+    speakers = list(filter(lambda x: len(os.listdir(os.path.join(clips_path, x))) > 600, VCTK_speakers.copy()))
+    np.random.shuffle(speakers)
+
+    test = speakers[-int(len(speakers) * test_ratio):]
+    val = speakers[-int(len(speakers) * val_ratio + len(test)):-len(test)]
+    train = speakers[0:-(len(val) + len(test))]
+
+    split_names = ["train", "val", "test"]
+    output_meta = pd.DataFrame(columns=["clip", "speaker", "split"])
+    for i, split in enumerate((train, val, test)):
+        for speaker in split:
+            speaker_path = os.path.join(clips_path, speaker)
+            viable_clips = list(filter(lambda x: "mic2" not in x, os.listdir(speaker_path)))
+            if split == "val":
+                viable_clips = sorted(viable_clips, key=lambda x: librosa.core.get_duration(filename=os.path.join(speaker_path, x)), reverse=True)
+                chosen_clips = viable_clips[:clips_per_speaker]
+            else:
+                chosen_clips = np.random.choice(viable_clips, clips_per_speaker, replace=False)
+            for clip in chosen_clips:
+                audio = librosa.core.load(os.path.join(speaker_path, clip), sr=16000, mono=True)[0]
+                audio = librosa.util.normalize(audio)
+                audio, _ = librosa.effects.trim(audio, top_db=15, frame_length=256, hop_length=64)
+                sf.write(os.path.join(output_clips_path, clip.replace(".flac", ".wav")), audio, samplerate=16000)
+                record = pd.DataFrame(data=[{"clip": clip.replace(".flac", ".wav"), "speaker": speaker, "split": split_names[i]}])
+                output_meta = pd.concat((output_meta, record), ignore_index=True)
+    output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
+
+
+
 if __name__ == "__main__":
     #demand_to_intermediate_form("../../demand", "../../demand_intermediate")
     # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
     # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
     # vctk_to_intermediate_form("../../VCTK-Corpus", "../../vctk_intermediate")
-    vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/inter/vctk_intermediate/", clips_per_speaker=200)
+    vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/inter/vctk_intermediate_long/", clips_per_speaker=200)
     #cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/inter/cv_intermediate", clips_per_speaker=200)
     # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
     #esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")

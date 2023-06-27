@@ -1,9 +1,12 @@
 import os
-from custom_model_evaluation import get_best_checkpoint, evaluate_on_testset
+
+import pandas
+
+from custom_model_evaluation import get_best_checkpoint, evaluate_on_testset, prepare_batch
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet.main import load_config
-
-
+import time
+import numpy as np
 
 
 
@@ -16,6 +19,22 @@ def eval_and_dump(dataset_path, model_path):
     print(ref)
     print("pred: ")
     print(metrics)
+
+
+def eval_time_abstract(dataset_path, model_path):
+    config = load_config(os.path.join(model_path, "config.json"))
+    config["training"]["path"] = os.path.join("../speech_denoising_wavenet", config["training"]["path"])
+    model = DenoisingWavenet(config, load_checkpoint=get_best_checkpoint(os.path.join(model_path, "checkpoints")))
+    times = []
+    for i in range(0, 100, 1):
+        sig = np.random.random(16000 * 3)
+        batch = prepare_batch(sig, model)[0]
+        t1 = time.time()
+        model.model.predict(batch, verbose=False)
+        t2 = time.time()
+        times.append(t2 - t1)
+    df = pandas.DataFrame(data={"pred_times": times})
+    df.to_csv(os.path.join(model.config["training"]["path"], "pred_times.csv"))
 
 
 def general_eval():
@@ -59,8 +78,8 @@ def approx_eval():
 
 
 def depth_eval():
-    for dataset in ["demand", "esc50", "fma", "art"]:
-        for i in [1, 3, 5, 7, 9]:
+    for dataset in ["fma", "art"]:
+        for i in [1, 3, 5]:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}"
             eval_and_dump(dataset_path, model_session_path)
@@ -68,19 +87,29 @@ def depth_eval():
 
 def dropout_eval():
     for dataset in ["demand", "esc50", "fma", "art"]:
-        for rate in [0.1, 0.3, 0.5]:
+        for rate in [0.1, 0.2, 0.3, 0.4, 0.5]:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/arch/dropout/vctk_{dataset}_{rate}"
             eval_and_dump(dataset_path, model_session_path)
 
 
 def loss_eval():
-    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    #losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    losses = ["weighted_spectrogram"]
     for dataset in ["demand", "esc50", "fma", "art"]:
         for loss in losses:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/hiper/loss/vctk_{dataset}_{loss}"
             eval_and_dump(dataset_path, model_session_path)
+
+
+
+def loss_eval_pesq():
+    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    for loss in losses:
+        dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_art_long"
+        model_session_path = f"../speech_denoising_wavenet/experiments/hiper/loss/vctk_art_{loss}"
+        eval_and_dump(dataset_path, model_session_path)
 
 
 def opt_eval():
@@ -93,30 +122,46 @@ def opt_eval():
 
 def lr_eval():
     for dataset in ["demand", "esc50", "fma", "art"]:
-        for lr in [0.01, 0.0001]:
-            dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
+        #for lr in [0.01, 0.001, 0.0001, 0.00001]:
+        for lr in [1e-05]:
+            dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/v" \
+                           f"ctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/hiper/lr/vctk_{dataset}_{lr}"
             eval_and_dump(dataset_path, model_session_path)
 
 
 def batch_eval():
     for dataset in ["demand", "esc50", "fma", "art"]:
-        for batch in [2, 5]:
+        for batch in [2, 5, 10]:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/hiper/batch/vctk_{dataset}_{batch}"
             eval_and_dump(dataset_path, model_session_path)
 
 
+def eval_time():
+    for dataset in ["demand", "esc50", "fma", "art"]:
+        for i in [1, 3, 5, 7, 9]:
+            dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
+            model_session_path = f"../speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}"
+            eval_time_abstract(dataset_path, model_session_path)
+
 if __name__ == "__main__":
     #general_eval()
     #language_eval()
     #reverb_eval()
-    approx_eval()
+    #approx_eval()
 
-    depth_eval()
-    dropout_eval()
+    #depth_eval()
+    #dropout_eval()
 
-    loss_eval()
-    opt_eval()
-    lr_eval()
-    batch_eval()
+    #loss_eval()
+    # opt_eval()
+    #lr_eval()
+    #batch_eval()
+    #loss_eval()
+    #opt_eval()
+    #batch_eval()
+    #lr_eval()
+    #loss_eval_pesq()
+    eval_time()
+    pass
