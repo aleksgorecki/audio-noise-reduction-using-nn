@@ -94,8 +94,7 @@ def dropout_eval():
 
 
 def loss_eval():
-    #losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
-    losses = ["weighted_spectrogram"]
+    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
     for dataset in ["demand", "esc50", "fma", "art"]:
         for loss in losses:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
@@ -122,8 +121,7 @@ def opt_eval():
 
 def lr_eval():
     for dataset in ["demand", "esc50", "fma", "art"]:
-        #for lr in [0.01, 0.001, 0.0001, 0.00001]:
-        for lr in [1e-05]:
+        for lr in [0.01, 0.001, 0.0001, 0.00001]:
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/v" \
                            f"ctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/hiper/lr/vctk_{dataset}_{lr}"
@@ -144,24 +142,3 @@ def eval_time():
             dataset_path = f"../speech_denoising_wavenet/data/final_datasets/general/vctk_{dataset}"
             model_session_path = f"../speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{i}"
             eval_time_abstract(dataset_path, model_session_path)
-
-if __name__ == "__main__":
-    #general_eval()
-    #language_eval()
-    #reverb_eval()
-    #approx_eval()
-
-    #depth_eval()
-    #dropout_eval()
-
-    #loss_eval()
-    # opt_eval()
-    #lr_eval()
-    #batch_eval()
-    #loss_eval()
-    #opt_eval()
-    #batch_eval()
-    #lr_eval()
-    #loss_eval_pesq()
-    eval_time()
-    pass

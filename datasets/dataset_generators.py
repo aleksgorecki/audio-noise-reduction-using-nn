@@ -47,13 +47,7 @@ def generate_final_subset(noise_inter: str, clean_inter: str, output_dataset: st
             noise_clip = librosa.core.load(noise_path, sr=16000)[0]
             clean_clip = librosa.core.load(clean_path, sr=16000)[0]
 
-            # if split_name == "val":
-            #     clean_clip, _ = librosa.effects.trim(clean_clip, top_db=10, frame_length=256, hop_length=64)
-            #     if len(clean_clip) < (2.99 * 16000):
-            #         continue
-
             if len(noise_clip) > len(clean_clip):
-                # random_offset = np.random.randint(0, len(noise_clip) - len(clean_clip))
                 noise_clip = noise_clip[:len(clean_clip)]
             elif len(clean_clip) > len(noise_clip):
                 center = len(clean_clip) // 2
@@ -227,65 +221,3 @@ def generate_final_subset_match_all(noise_inter: str, clean_inter: str, output_d
                 sf.write(os.path.join(output_dataset, split_dir_name_clean, output_filename), data=clean_clip, samplerate=16000)
 
     output_meta.to_csv(os.path.join(output_dataset, f"metadata_{split_name}.csv"), index=False)
-
-
-if __name__ == "__main__":
-    # noise_path = "/home/aleks/magister/datasets/inter/fma_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_fma/"
-    # split_name = "train"
-    # speakers_num = 40
-    # clips_per_speaker = 200
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # noise_path = "/home/aleks/magister/datasets/inter/fma_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_fma/"
-    # split_name = "test"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # noise_path = "/home/aleks/magister/datasets/inter/fma_intermediate"
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_fma/"
-    # split_name = "val"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_final_subset(noise_path, clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_art/"
-    # split_name = "train"
-    # speakers_num = 40
-    # clips_per_speaker = 200
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_art/"
-    # split_name = "test"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-    #
-    # clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate"
-    # output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_art/"
-    # split_name = "val"
-    # speakers_num = 10
-    # clips_per_speaker = 80
-    # SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    # generate_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-
-    clean_path = "/home/aleks/magister/datasets/inter/vctk_intermediate_long"
-    output_path = "/home/aleks/magister/datasets/final_datasets/general/vctk_art_long/"
-    split_name = "val"
-    speakers_num = 10
-    clips_per_speaker = 100
-    SNRs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    generate_long_only_artifical_noise_final_subset(clean_path, output_path, split_name, speakers_num, clips_per_speaker, SNRs)
-

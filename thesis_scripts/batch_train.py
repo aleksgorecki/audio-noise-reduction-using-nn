@@ -18,10 +18,6 @@ base_config = load_config("base_config.json")
 os.chdir("../speech_denoising_wavenet")
 
 cla = get_command_line_arguments()
-# config = load_config(cla.config)
-# training(config, cla)
-# print("done")
-
 config = copy.copy(base_config)
 
 
@@ -38,8 +34,7 @@ def dilations_train():
 
 
 def loss_train(config):
-    #losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
-    losses = ["weighted_spectrogram"]
+    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
     def set_weights_to_0(config):
         for loss in losses:
             for out in ["out_1", "out_2"]:
@@ -91,8 +86,7 @@ def opt_train(config):
 
 
 def lr_train(config):
-    for lr in [0.00001]:
-    #for lr in [0.0001, 0.001, 0.01]:
+    for lr in [0.0001, 0.001, 0.01]:
         for dataset in ["demand", "esc50", "fma", "art"]:
             config["optimizer"]["lr"] = lr
             config["dataset"]["path"] = f"data/final_datasets/general/vctk_{dataset}"
@@ -138,62 +132,3 @@ def reverb_train(config):
         subprocess.call(["python", "main.py", "--config", "temp_config.json"])
         print(f"{dataset} done")
 
-#dropout_train(base_config)
-lr_train(base_config)
-# reverb_train(base_config)
-#
-# config["dataset"]["path"] = "data/final_datasets/general/vctk_demand"
-# config["training"]["path"] = "experiments/general/vctk_demand"
-#
-
-# training(config, cla)
-# print("done")
-#
-# config["dataset"]["path"] = "data/final_datasets/general/vctk_esc50"
-# config["training"]["path"] = "experiments/general/vctk_esc50"
-#
-# training(config, cla)
-# print("done")
-
-# config["dataset"]["path"] = "data/final_datasets/general/vctk_art"
-# config["training"]["path"] = "experiments/general/vctk_art"
-#
-# training(config, cla)
-# print("done")
-#
-# config["dataset"]["path"] = "data/final_datasets/general/vctk_fma"
-# config["training"]["path"] = "experiments/general/vctk_fma"
-#
-# training(config, cla)
-# print("done")
-#
-
-
-# config["dataset"]["path"] = "data/final_datasets/lang/cv_demand"
-# config["training"]["path"] = "experiments/databased/lang/cv_demand"
-#
-# training(config, cla)
-# print("done")
-# tf.keras.backend.clear_session()
-
-
-# config["dataset"]["path"] = "data/final_datasets/lang/cv_esc50"
-# config["training"]["path"] = "experiments/databased/lang/cv_esc50"
-#
-# training(config, cla)
-# print("done")
-# reset_tf_keras()
-
-# config["dataset"]["path"] = "data/final_datasets/lang/cv_art"
-# config["training"]["path"] = "experiments/databased/lang/cv_art"
-#
-# training(config, cla)
-# print("done")
-# reset_tf_keras()
-
-# config["dataset"]["path"] = "data/final_datasets/lang/cv_fma"
-# config["training"]["path"] = "experiments/databased/lang/cv_fma"
-#
-# training(config, cla)
-# print("done")
-# reset_tf_keras()

@@ -115,8 +115,6 @@ def cv_to_intermediate_form(cv_original_path: str, output_dir: str, val_ratio: f
 
 
 def fma_to_intermediate_form(fma_original_path: str, metadata_path: str, output_dir: str, val_ratio: float = 0.15, test_ratio: float = 0.15, clips_per_class: int = 100, clips_per_track: int = 30):
-    # metadata = pd.read_csv(metadata_path, usecols=[0, 32, 40])
-    # metadata = metadata.dropna(subset=[metadata.columns[2]])
 
     metadata = pd.read_csv(metadata_path, usecols=[0, 32, 40])
     metadata.columns = ["track_id", "subset", "genre"]
@@ -210,15 +208,3 @@ def vctk_to_intermediate_form_long(vctk_original_path: str, output_dir: str, val
                 record = pd.DataFrame(data=[{"clip": clip.replace(".flac", ".wav"), "speaker": speaker, "split": split_names[i]}])
                 output_meta = pd.concat((output_meta, record), ignore_index=True)
     output_meta.to_csv(os.path.join(output_dir, "metadata.csv"), index=False)
-
-
-
-if __name__ == "__main__":
-    #demand_to_intermediate_form("../../demand", "../../demand_intermediate")
-    # cv_to_intermediate_form("../../cv-corpus-12.0-2022-12-07", "../../cv_intermediate")
-    # esc50_to_intermediate("../../ESC-50-master", "../../esc50_intermediate")
-    # vctk_to_intermediate_form("../../VCTK-Corpus", "../../vctk_intermediate")
-    vctk_to_intermediate_form("/home/aleks/magister/datasets/VCTK-Corpus-0.92/", "/home/aleks/magister/datasets/inter/vctk_intermediate_long/", clips_per_speaker=200)
-    #cv_to_intermediate_form("/home/aleks/magister/datasets/cv-corpus-13.0-2023-03-09", "/home/aleks/magister/datasets/inter/cv_intermediate", clips_per_speaker=200)
-    # fma_to_intermediate_form("/home/aleks/magister/datasets/fma_small", "/home/aleks/magister/datasets/fma_metadata/tracks.csv", "/home/aleks/magister/datasets/fma_intermediate", clips_per_class=100)
-    #esc50_to_intermediate("/home/aleks/magister/datasets/ESC-50-master", "/home/aleks/magister/datasets/esc50_intermediate")

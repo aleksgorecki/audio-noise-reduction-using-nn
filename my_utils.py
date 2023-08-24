@@ -2,10 +2,7 @@ import librosa
 from scipy.signal import wiener
 from scipy.signal import lfilter, butter, filtfilt
 import numpy as np
-import os
 import soundfile as sf
-import pathlib
-import csv
 from typing import List
 from matplotlib import pyplot as plt
 import os
@@ -27,10 +24,6 @@ def apply_wiener_filter_to_dir(input_dir: str, output_dir: str) -> None:
         output_name = pathlib.Path(af).stem + '.wav'
         apply_wiener_filter_to_file(
             f"{input_dir}/{af}", output_file=f"{output_dir}/{output_name}")
-
-
-def plot_wavenet_history(history_csv_path: str):
-    pass
 
 
 def parse_file_read_log(log_path: str):
@@ -58,8 +51,6 @@ def parse_file_read_log(log_path: str):
 
         result = dict(
             (i.strip('\n'), train_epochs[0].count(i)) for i in train_epochs[0])
-        # for key in result.keys():
-        #     print(f"{str(key)}: {str(result[key])}")
         keys2 = dict((i.strip('\n'), train_epochs[1].count(
             i)) for i in train_epochs[1]).keys()
         for key in result.keys():
@@ -70,9 +61,6 @@ def parse_file_read_log(log_path: str):
             if key in result.keys():
                 print(key)
 
-        # print(len(train_epochs[0]))
-        # print(len(test_epochs[0]))
-
 
 def rms(x):
     return np.sqrt(np.mean(np.square(x), axis=-1))
@@ -81,22 +69,6 @@ def rms(x):
 def normalize(x):
     max_peak = np.max(np.abs(x))
     return x / max_peak
-
-
-# def low_pass_filter(signal, cutoff_f, sr):
-#     cutoff_index = int(cutoff_f * len(signal) / sr)
-#     spectrum = np.fft.fft(signal)
-#     spectrum[cutoff_index:] = 0
-#     filtered = np.fft.ifft(spectrum)
-#     return np.real(filtered)
-#
-#
-# def high_pass_filter(signal, cutoff_f, sr):
-#     cutoff_index = int(cutoff_f * len(signal) / sr)
-#     spectrum = np.fft.fft(signal)
-#     spectrum[0:cutoff_index] = 0
-#     filtered = np.fft.ifft(spectrum)
-#     return np.real(filtered)
 
 
 def butter_lowpass(signal, cutoff, sr, order):
@@ -115,16 +87,6 @@ def butter_bandpass(data, low, high, sr, order=5):
     b, a = butter(order, [low, high], fs=sr, btype='band', analog=False, output='ba')
     filtered = filtfilt(b, a, data)
     return filtered
-
-
-# def mix_with_snr(signal, noise, snr):
-#     signal_energy = np.mean(signal[0] ** 2)
-#     noise_energy = np.mean(noise ** 2)
-#     noise_gain = np.sqrt(10.0 ** (-snr / 10) * signal_energy / noise_energy)
-#     a = np.sqrt(1 / (1 + noise_gain ** 2))
-#     b = np.sqrt(noise_gain ** 2 / (1 + noise_gain ** 2))
-#     generated = a * signal[0] + b * noise
-#     return generated
 
 def mix_with_snr(signal, noise, snr):
     rms_sig = rms(signal)
@@ -174,50 +136,3 @@ def plot_spectrum(s):
     f = np.fft.rfftfreq(len(s))
     plt.loglog(f, np.abs(np.fft.rfft(s)))
     plt.show()
-
-
-def eval_model_on_dir(config_path, checkpoint_path, input_dir):
-    pass
-
-
-if __name__ == "__main__":
-    pass
-    # # apply_wiener_filter_to_file(input_file="/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/data/NSDTSEA/noisy_testset_wav/p232_154.wav", output_file="/home/aleks/Desktop/p232_154_wiener.wav")
-    # # parse_file_read_log(
-    # #     "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/file_read_log.txt")
-    # create_white_noise_dataset("/home/aleks/magister/datasets/VCTK-Corpus-0.92", sn_ratios=[10000, 50, 30, 20, 10],
-    #                            speakers=os.listdir(
-    #                                "/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[0:30],
-    #                            original_clips_per_speaker=35,
-    #                            output_dir_path="/home/aleks/magister/datasets/lowpass_gaussian_NSDTSEA",
-    #                            setname="trainset")
-    # create_white_noise_dataset("/home/aleks/magister/datasets/VCTK-Corpus-0.92", sn_ratios=[60, 40, 20, 10],
-    #                            speakers=os.listdir(
-    #                                "/home/aleks/magister/datasets/VCTK-Corpus-0.92/wav48_silence_trimmed")[30:37],
-    #                            original_clips_per_speaker=30,
-    #                            output_dir_path="/home/aleks/magister/datasets/lowpass_gaussian_NSDTSEA",
-    #                            setname="testset")
-    # signal = librosa.load("speech_denoising_wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
-    # noise = red_noise(len(signal[0]))
-    # # plot_spectrum(noise)
-    # output = mix_with_snr(signal, noise, 10)
-    # sf.write(f"output.wav", data=output, samplerate=16000, format='WAV')
-    # subsets = ['noisy_trainset_wav']
-    # for subset in subsets:
-    #     shrink_dataset(f"../datasets/NSDTSEA/{subset}", 1200, f"../datasets/NSDTSEA_shrink/{subset}")
-    # subsets = ['noisy_testset_wav']
-    # for subset in subsets:
-    #     shrink_dataset(f"../datasets/NSDTSEA/{subset}", 120, f"../datasets/NSDTSEA_shrink/{subset}")
-    # signal = librosa.load("speech_denoising_wavenet/data/NSDTSEA/clean_trainset_wav/p226_043.wav", sr=16000)
-    # noise = white_noise(len(signal[0]))
-    # noise = butter_bandpass(noise, 2000, 4000, 16000, 5)
-    # sf.write("./filtered", data=noise, samplerate=16000, format='WAV')
-    # files = os.listdir("../datasets/NSDTSEA/noisy_trainset_wav")
-    # files = [f"../datasets/NSDTSEA/noisy_trainset_wav/{x}" for x in files]
-    # rmss = []
-    # for file in files:
-    #     audio = librosa.load(file, sr=16000)
-    #     rmss.append((rms(audio[0])))
-    # print(min(rmss))
-    # print(files[np.argmin(rmss)])
-    # print(files[np.argmax(rmss)])

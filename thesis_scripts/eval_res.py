@@ -3,14 +3,9 @@ import numpy as np
 import pandas
 import pandas as pd
 from datasets.dataset_constants import ESC50_CATEGORIES
-import scipy.stats
 import os
 import matplotlib as mpl
 mpl.rcParams['figure.dpi'] = 150
-
-#plt.style.use('seaborn-v0_8')
-#ax = plt.bar(rot=0, color={"DEMAND": "lightsalmon", "ESC-50": "gold", "FMA": "mediumpurple", "ART": "greenyellow"}, ec="gray")
-#colors = ["tomato", "goldenrod", "blueviolet", "olivedrab"]
 
 METRIC_TITLES = {
     "mosnet": "MOSNET",
@@ -51,7 +46,6 @@ def category_plot(res_meta, ref_meta, metric):
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
     plt.bar(list(category_score_map.keys()), scores, color="salmon", ec="darkgray")
-    #plt.title("Referencja")
     plt.xticks(rotation=45)
 
     df = pd.read_csv(res_meta)
@@ -71,7 +65,6 @@ def category_plot(res_meta, ref_meta, metric):
         scores.append(category_score_map[key])
     plt.bar(list(category_score_map.keys()), scores, color="slategray", ec="darkgray", width = 0.1)
     plt.xticks(rotation=45)
-    #plt.title("Predykcja")
 
 
 def category_plot_same(res_meta, ref_meta, metric):
@@ -96,32 +89,6 @@ def category_plot_same(res_meta, ref_meta, metric):
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
 
-    # categories = []
-    # scores = []
-    # inverse_top_category_dict = dict()
-    # for key in ESC50_CATEGORIES.keys():
-    #     for category in ESC50_CATEGORIES[key]:
-    #         inverse_top_category_dict.update({category: key})
-    # for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
-    #     subcategory_scores = []
-    #     for category in category_score_map.keys():
-    #         if inverse_top_category_dict[category] == top_category:
-    #             subcategory_scores.append(category_score_map[category])
-    #     categories.append(top_category)
-    #     scores.append(np.mean(subcategory_scores))
-        # if i >= len(list(ESC50_CATEGORIES.keys())):
-        #     break
-        # top_category = list(ESC50_CATEGORIES.keys())[i]
-        # categories = []
-        # scores = []
-        # for key in category_score_map.keys():
-        #     if inverse_top_category_dict[key] == top_category:
-        #         categories.append(key)
-        #         scores.append(category_score_map[key])
-    # categories = ["Animals", "Natural", "Human", "Interior", "Exterior"]
-    # plt.bar(categories, scores, color="goldenrod", ec="gray", alpha=1)
-    # plt.xticks(rotation=45)
-
     plt.bar(list(category_score_map.keys()), scores, color="yellowgreen", ec="darkgray", alpha=1, width = 0.3)
     plt.xticks(rotation=45)
 
@@ -137,22 +104,6 @@ def category_plot_same(res_meta, ref_meta, metric):
         else:
             category_score_map.update({name: np.mean(group[metric].tolist())})
 
-
-
-    # scores = []
-    # inverse_top_category_dict = dict()
-    # for key in ESC50_CATEGORIES.keys():
-    #     for category in ESC50_CATEGORIES[key]:
-    #         inverse_top_category_dict.update({category: key})
-    # for i, top_category in enumerate(ESC50_CATEGORIES.keys()):
-    #     subcategory_scores = []
-    #     for category in category_score_map.keys():
-    #         if inverse_top_category_dict[category] == top_category:
-    #             subcategory_scores.append(category_score_map[category])
-    #     scores.append(np.mean(subcategory_scores))
-    # for key in category_score_map.keys():
-    #     scores.append(category_score_map[key])
-    #plt.bar(categories, scores, color="cornflowerblue", ec="gray", alpha=1)
     scores = []
     for key in category_score_map.keys():
         scores.append(category_score_map[key])
@@ -177,7 +128,6 @@ def snr_plot(res_meta, ref_meta, metric):
     snr_groups = df.groupby("snr")
     snr_score_map = {}
     for name, group in snr_groups:
-        # if type(group[metric]) != float:
         if metric == "sisdr":
             mean = sisdr_mean(group[metric].tolist())
             snr_score_map.update({name: mean})
@@ -206,7 +156,6 @@ def snr_plot(res_meta, ref_meta, metric):
     scores = []
     for key in snr_score_map.keys():
         scores.append(snr_score_map[key])
-    #plt.plot(list(snr_score_map.keys()), scores)
     plt.plot(list(snr_score_map.keys()), scores, marker="o", color="yellowgreen")
     plt.xticks(list(snr_score_map.keys()))
 
@@ -278,52 +227,6 @@ def metric_distribution(res_meta, ref_meta, metric):
     plt.savefig("/home/aleks/Desktop/artdistpred.png")
 
 
-
-    # fig, ax = plt.subplots()
-    # plt.hist(scores, bins=100, ec="gray", color="lightpink")
-    # # plt.plot(list(snr_score_map.keys()), scores)
-    # # plt.xticks(rotation=45)
-    # ax.axvline(np.mean(scores), color='blue', linewidth=2)
-    # ax.axvline(np.median(scores), color="brown", linewidth=2)
-    #
-    # if np.mean(scores) < np.median(scores):
-    #     xoff = -15
-    # else:
-    #     xoff = 15
-    #
-    # align = 'left' if xoff > 0 else 'right'
-    # ax.annotate('Średnia: {:0.2f}'.format(np.mean(scores)), xy=(np.mean(scores), 1), xytext=(xoff, 15),
-    #             xycoords=('data', 'axes fraction'), textcoords='offset points',
-    #             horizontalalignment=align, verticalalignment='center',
-    #             arrowprops=dict(arrowstyle='-|>', fc='black', shrinkA=0, shrinkB=0,
-    #                             connectionstyle='angle,angleA=0,angleB=90,rad=10'),
-    #             )
-    #
-    # xoff = -xoff
-    #
-    # align = 'left' if xoff > 0 else 'right'
-    # ax.annotate('Mediana: {:0.2f}'.format(np.median(scores)), xy=(np.median(scores), 1), xytext=(xoff, 15),
-    #             xycoords=('data', 'axes fraction'), textcoords='offset points',
-    #             horizontalalignment=align, verticalalignment='center',
-    #             arrowprops=dict(arrowstyle='-|>', fc='black', shrinkA=0, shrinkB=0,
-    #                             connectionstyle='angle,angleA=0,angleB=90,rad=10'),
-    #             )
-    #
-    #
-    #
-    # df = pd.read_csv(res_meta)
-    # df = df[[metric]]
-    # scores = df.values.tolist()
-    # scores = [x[0] for x in scores]
-    #
-    # fig, ax = plt.subplots()
-    # plt.hist(scores, bins=100, ec="black", color="lightgreen")
-    # plt.plot(list(snr_score_map.keys()), scores)
-    # plt.xticks(rotation=45)
-
-
-
-
 def category_plot_esc(res_meta, metric, use_difference=False):
     df = pd.read_csv(res_meta)
     df = df[["noise_category", metric, "mse_in", "mae_in"]]
@@ -363,26 +266,6 @@ def category_plot_esc(res_meta, metric, use_difference=False):
         ax.bar(categories, scores, color=next(colors)["color"])
         ax.set_title(top_category)
         ax.tick_params(axis='x', rotation=45)
-        #fig.tight_layout()
-
-    # fig, axs = plt.subplots(1, 5)
-    # colors = plt.rcParams["axes.prop_cycle"]()
-    # for i, ax in enumerate(axs.flat):
-    #     if i >= len(list(ESC50_CATEGORIES.keys())):
-    #         break
-    #     top_category = list(ESC50_CATEGORIES.keys())[i]
-    #     categories = []
-    #     scores = []
-    #     for key in category_score_map.keys():
-    #         if inverse_top_category_dict[key] == top_category:
-    #             categories.append(key)
-    #             scores.append(category_score_map[key])
-    #     ax.bar(categories, scores, color=next(colors)["color"])
-    #     ax.set_title(top_category)
-    #     ax.tick_params(axis='x', rotation=45)
-    #     fig.tight_layout()
-    # plt.show()
-
 
 def sisdr_to_lin(val):
     val = val / (10.0)
@@ -481,7 +364,6 @@ def dilation_table():
         )
     df.loc[len(df.index)] = refs
 
-
     for i in [1, 3, 5, 7, 9]:
         vals = []
         vals.append(i)
@@ -492,7 +374,6 @@ def dilation_table():
             pred = pred[["sisdr"]]
             vals.append(sisdr_pandas_mean(pred))
         df.loc[len(df.index)] = vals
-
 
     print(df.to_latex(index=False, float_format="%.2f"))
 
@@ -530,16 +411,6 @@ def dilation_plot():
 
 def dropout_plot():
     df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
-    # refs = []
-    # refs.append("Przed redukcją")
-    # for dataset in ["demand", "esc50", "fma", "art"]:
-    #     path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{1}/evals/vctk_{dataset}/"
-    #     ref, pred = read_csv_results(path)
-    #     ref = ref[["sisdr"]]
-    #     refs.append(
-    #         np.mean(ref)
-    #     )
-    # df.loc[len(df.index)] = refs
 
     d = {
         "demand": [],
@@ -569,25 +440,11 @@ def dropout_plot():
     plt.savefig("/home/aleks/Desktop/dropoutplot.png", dpi=300)
     plt.show()
 
-
-
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
-
 
 
 def dropout_table():
     df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "SZTUCZNE"])
-    # refs = []
-    # refs.append("Przed redukcją")
-    # for dataset in ["demand", "esc50", "fma", "art"]:
-    #     path = f"/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/arch/depth/vctk_{dataset}_{1}/evals/vctk_{dataset}/"
-    #     ref, pred = read_csv_results(path)
-    #     ref = ref[["sisdr"]]
-    #     refs.append(
-    #         np.mean(ref)
-    #     )
-    # df.loc[len(df.index)] = refs
 
     for i in [0.1, 0.2, 0.3, 0.4, 0.5]:
         vals = []
@@ -602,7 +459,6 @@ def dropout_table():
 
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 
 def default_values():
@@ -639,7 +495,6 @@ def loss_table():
 
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 
 def loss_plot():
@@ -673,8 +528,6 @@ def loss_plot():
     plt.ylabel("średnia SI-SDR")
     plt.savefig("/home/aleks/Desktop/lossplot.png", dpi=300)
     plt.show()
-    pass
-
 
 def optim_table():
     df = pd.DataFrame(columns=["", "DEMAND", "ESC-50", "FMA", "ART"])
@@ -691,7 +544,6 @@ def optim_table():
         df.loc[len(df.index)] = vals
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 def optim_plot():
     df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
@@ -724,7 +576,6 @@ def optim_plot():
     plt.ylabel("średnia SI-SDR")
     plt.savefig("/home/aleks/Desktop/optplot.png", dpi=300)
     plt.show()
-    pass
 
 
 def lr_table():
@@ -742,7 +593,6 @@ def lr_table():
         df.loc[len(df.index)] = vals
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 def lr_plot():
     df = pd.DataFrame(columns=["DEMAND", "ESC-50", "FMA", "ART"])
@@ -776,7 +626,6 @@ def lr_plot():
     plt.legend(loc="lower right")
     plt.savefig("/home/aleks/Desktop/lrplot.png")
     plt.show()
-    pass
 
 
 def approx_table():
@@ -852,7 +701,6 @@ def batch_table():
         df.loc[len(df.index)] = vals
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 
 
@@ -886,7 +734,6 @@ def language_tables():
         dfcv.loc[len(dfcv.index)] = vals
 
     print(dfcv.to_latex(index=False, float_format="%.2f"))
-    pass
 
 
 def category_plot_same_esc2(res_meta, ref_meta, metric):
@@ -959,7 +806,6 @@ def category_plot_same_esc2(res_meta, ref_meta, metric):
     categories = ["Animals", "Natural", "Human", "Interior", "Exterior"]
     plt.bar(categories, scores, color="slategray", ec="darkgray", alpha=1, width=0.4)
     scores = []
-    #fig.set_size_inches(9, 7.2)
     plt.tight_layout()
     plt.legend(["po redukcji", "przed redukcją"], loc="lower right")
     plt.xlabel("kategoria zakłóceń")
@@ -998,19 +844,12 @@ def training_times_tab():
             vals.append(np.mean(df[["times"]]))
         times.append(np.mean(vals))
         print(i)
-    # fig, ax = plt.subplots()
     df = pandas.DataFrame()
 
     s1 = pd.Series([1, 3, 5, 7, 9], name='$d$')
     s2 = pd.Series(times, name='śr. czas trwania epoki uczenia [s]')
     df = pd.concat([s1, s2], axis=1)
 
-    # plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="dodgerblue")
-    # plt.xticks([1, 3, 5, 7, 9])
-    # plt.xlabel("liczba rozszerzeń konwolucji")
-    # plt.ylabel("uśredniony czas trwania jednej epoki uczenia [s]")
-    # #plt.grid()
-    # plt.savefig("/home/aleks/Desktop/dilationstimeplot.png", dpi=300)
     print(df.to_latex(index=False, float_format="%.2f"))
 
 
@@ -1024,19 +863,12 @@ def pred_times_tab():
             vals.append(np.mean(df[["pred_times"]]))
         times.append(np.mean(vals))
         print(i)
-    # fig, ax = plt.subplots()
     df = pandas.DataFrame()
 
     s1 = pd.Series([1, 3, 5, 7, 9], name='$d$')
     s2 = pd.Series(times, name='śr. czas odszumiania [s]')
     df = pd.concat([s1, s2], axis=1)
 
-    # plt.plot([1, 3, 5, 7, 9], times, marker = "o", color="dodgerblue")
-    # plt.xticks([1, 3, 5, 7, 9])
-    # plt.xlabel("liczba rozszerzeń konwolucji")
-    # plt.ylabel("uśredniony czas trwania jednej epoki uczenia [s]")
-    # #plt.grid()
-    # plt.savefig("/home/aleks/Desktop/dilationstimeplot.png", dpi=300)
     print(df.to_latex(index=False, float_format="%.2f"))
 
 
@@ -1076,7 +908,6 @@ def loss_table_mosnet():
 
 
     print(df.to_latex(index=False, float_format="%.2f"))
-    pass
 
 
 def loss_plot_mosnet():
@@ -1103,44 +934,3 @@ def loss_plot_mosnet():
     plt.ylabel("śr. MOS")
     plt.savefig("/home/aleks/Desktop/mosnetlossplot.png", dpi=300)
     plt.show()
-    pass
-
-
-if __name__ == "__main__":
-    # training_times_plot()
-    # pred_times_tab()
-    # pred_times_plot()
-    # loss_table_mosnet()
-    # loss_plot_mosnet()
-    #training_times_plot()
-    #training_times_tab()
-    # category_plot("/home/aleks/magister/datasets/final_datasets/vctk_demand/evals/default_5_vctk_demand.csv", "mae")
-    #pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/pred.csv"
-    #ref_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/ref.csv"
-    #metric_distribution(pred_path, ref_path, "sisdr")
-    #category_plot_same_esc2(pred_path, ref_path, "sisdr")
-    # snr_plot(pred_path, ref_path, "sisdr")
-    # plt.show()
-    #plt.show()
-    # general_table()
-    # aproximmation_table()
-    # dilation_table()
-    # dilation_plot()
-    # default_values()
-    # dropout_table()
-    # dropout_plot()
-    # loss_table()
-    # loss_plot()
-    # optim_table()
-    # optim_plot()
-    # lr_table()
-    # lr_plot()
-    # language_tables()
-    # approx_table()
-    # reverb_tables()
-    dropout_plot()
-    #loss_plot_mosnet()
-    # pred_path = "/home/aleks/magister/audio-noise-reduction-using-nn/speech_denoising_wavenet/experiments/general/vctk_esc50/evals/vctk_esc50/ref.csv"
-    # df = pd.read_csv(pred_path)
-    # df = df[["sisdr"]]
-    # print(np.mean(df.values.tolist()))

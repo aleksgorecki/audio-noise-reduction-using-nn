@@ -11,14 +11,10 @@ val_loss = df[["val_loss"]].values.flatten().tolist()
 epochs = list(range(0, len(loss), 1))
 
 fig, ax = plt.subplots()
-# plt.plot(epochs, loss, color="orange")
-# plt.xlabel("Epoka")
-# plt.ylabel("MSE")
 
 plt.plot(epochs, val_loss, color="dodgerblue", marker="o")
 plt.xlabel("Epoka")
 plt.ylabel("MSE")
-# plt.legend(["Zbiór walidacyjny"])
 
 fig, ax = plt.subplots()
 plt.plot(epochs, loss, color="orange", marker="o")

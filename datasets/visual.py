@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 from matplotlib import pyplot as plt
 import librosa.feature
@@ -50,20 +49,3 @@ def plot_spectrogram(data, fs, title=None, show=True, save_path=None, fig=None, 
     if save_path:
         os.makedirs(save_path, exist_ok=True)
         fig.savefig(save_path)
-
-
-def plot_mel_spec(data, fs, title=None, show=True, save_path=None):
-    pass
-
-
-def get_feature_vector(data, fs):
-    data = librosa.util.normalize(data)
-
-    mfcc = np.mean(librosa.feature.mfcc(y=data, sr=fs))
-    zero_cross = np.mean(librosa.feature.zero_crossing_rate(y=data))
-    return np.array([mfcc, zero_cross])
-
-
-def knn_audio():
-    librosa.feature.mfcc()
-    pass

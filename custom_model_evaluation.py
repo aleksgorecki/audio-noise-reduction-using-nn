@@ -1,24 +1,15 @@
-import sys
-import pypesq
-import pystoi
 import os
 import librosa
 import numpy as np
-import json
-import tensorflow as tf
-import soundfile as sf
 import speechmetrics
-# sys.path.append("speech_denoising_wavenet")
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet import util
-import time
 import tqdm
 import scipy
 import pandas as pd
 import pathlib
 
 
-#METRICS = ["sisdr"]
 METRICS = ["mosnet", "pesq", "sisdr"]
 my_speechmetrics = speechmetrics.load(METRICS, window=2.0)
 
@@ -80,13 +71,12 @@ def evaluate_example_original(example_clean, example_noisy, model: DenoisingWave
     batches = []
     for batch_i in tqdm.tqdm(range(0, num_batches)):
 
-        if batch_i == num_batches - 1:  # If its the last batch'
+        if batch_i == num_batches - 1:
             batch_size = num_fragments - batch_i * batch_size
 
         condition_batch = np.array([condition_input, ] * batch_size, dtype='uint8')
         input_batch = np.zeros((batch_size, int(model.input_length)))
 
-        # Assemble batch
         for batch_fragment_i in range(0, batch_size):
 
             if fragment_i + model.target_field_length > num_output_samples:
@@ -136,9 +126,6 @@ def evaluate_example_original(example_clean, example_noisy, model: DenoisingWave
 
 
 def prepare_batch(example, model: DenoisingWavenet):
-
-    #example = np.concatenate((np.zeros(model.half_receptive_field_length, dtype=example.dtype), example, np.zeros(model.half_receptive_field_length, dtype=example.dtype)))
-
     target_field_len = int(model.target_field_length)
     input_len = int(model.input_length)
     num_output_samples = int(example.shape[0] - (model.receptive_field_length - 1))
@@ -157,11 +144,6 @@ def prepare_batch(example, model: DenoisingWavenet):
         condition_batch = None
 
     return batch, condition_batch
-    # for i, target_field_window_start in enumerate(list(range(0, num_output_samples, target_field_len))):
-    #     if int(target_field_window_start + input_len) > num_output_samples:
-    #         batch[i][0:example.shape[0] - target_field_window_start] = example[target_field_window_start:]
-    #         continue
-    #     batch[i] = example[target_field_window_start: target_field_window_start + input_len]
 
 
 
@@ -177,7 +159,6 @@ def calculate_mean_metrics(metrics_dicts):
 
 
 def evaluate_example(example_noisy, example_clean, model: DenoisingWavenet, normalize, trim=True):
-    # sliced_clean = slice_example(example_clean, int(model.input_length))
     noisy_batch, condition_batch = prepare_batch(example_noisy, model)
     if condition_batch is not None:
         predicted_batch = model.model.predict({"data_input": noisy_batch, "condition_input": condition_batch}, verbose=0)[0]
@@ -210,15 +191,6 @@ def evaluate_example(example_noisy, example_clean, model: DenoisingWavenet, norm
 
     example_metrics.update({"snr_calc": new_snr_db})
 
-    # if normalize:
-    #     reference_metrics = my_speechmetrics(predicted_vector, example_clean, rate=int(16000))
-    #     for key in example_metrics.keys():
-    #         example_metrics[key] = example_metrics[key] / reference_metrics[key]
-
-    # sf.write("./test_noisy.wav", data=example_noisy, samplerate=16000)
-    # sf.write("./test_denoised.wav", data=predicted_vector, samplerate=16000)
-    # sf.write("./test_clean.wav", data=example_clean, samplerate=16000)
-
     ref_metrics = my_speechmetrics(example_noisy, example_clean, rate=16000)
     ref_metrics.update({"mse": mse(example_noisy, example_clean)})
     ref_metrics.update({"mae": mae(example_noisy, example_clean)})
@@ -227,17 +199,8 @@ def evaluate_example(example_noisy, example_clean, model: DenoisingWavenet, norm
 
 
 def evaluate_example_wiener(example_noisy, example_clean):
-    # sliced_clean = slice_example(example_clean, int(model.input_length))
-    # for batch in noisy_batch:
-        # _, _, spec = scipy.signal.stft(batch, 16000)
-        # spec_denoised = scipy.signal.wiener(np.abs(spec))
-        # denoised.append(scipy.signal.istft(spec_denoised, 16000))
     predicted_vector = scipy.signal.wiener(example_noisy).flatten()
     example_clean = example_clean[: predicted_vector.shape[0]]
-
-    # sf.write("./test_noisy.wav", data=example_noisy, samplerate=16000)
-    # sf.write("./test_denoised.wav", data=predicted_vector, samplerate=16000)
-    # sf.write("./test_clean.wav", data=example_clean, samplerate=16000)
 
     speechmetrics_res = my_speechmetrics(predicted_vector, example_clean, rate=int(16000))
     example_metrics = speechmetrics_res
@@ -247,7 +210,6 @@ def evaluate_example_wiener(example_noisy, example_clean):
 
 def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, normalize=False):
 
-    #noisy_clips_dir = os.listdir(os.path.join(main_set, "noisy_testset_wav"))
     noisy_meta = pd.read_csv(os.path.join(main_set, "metadata_val.csv"))
     if max_files is not None:
         noisy_meta = noisy_meta.sample(n=max_files)
@@ -265,13 +227,6 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, norma
 
         if len(noisy) < model.input_length:
             continue
-
-        # clean = librosa.util.normalize(clean)
-        # noisy = librosa.util.normalize(noisy)
-        # clean, trim_indx = librosa.effects.trim(clean, top_db=5, frame_length=256, hop_length=64)
-        # noisy = noisy[trim_indx[0]:trim_indx[1]]
-        # if (len(clean) < int(2.9 * 16000.0)):
-        #     continue
 
         example_metrics, ref_metrics = evaluate_example(noisy, clean, model, normalize=normalize)
 
@@ -325,7 +280,6 @@ def evaluate_on_testset(main_set, model: DenoisingWavenet, max_files=None, norma
                    }])
         ref_metrics_meta = pd.concat((ref_metrics_meta, ref_record), ignore_index=True)
 
-    # os.makedirs(os.path.join(main_set, "evals"), exist_ok=True)
     evals_path = os.path.join(model.config["training"]["path"], "evals", pathlib.Path(main_set).name)
     os.makedirs(evals_path, exist_ok=True)
     output_meta.to_csv(os.path.join(evals_path, "pred.csv"))
@@ -375,23 +329,3 @@ def predict_example(example_noisy, example_clean, model: DenoisingWavenet, calc_
 
     return predicted_vector, example_metrics, example_clean
 
-
-if __name__ == "__main__":
-    pass
-    # dataset_path = "speech_denoising_wavenet/data/final_datasets/vctk_art_hi"
-    # config_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/config.json"
-    # checkpoint_path = "speech_denoising_wavenet/experiments/general/vctk_art_hi/checkpoints/checkpoint.00060-0.445.hdf5"
-    #
-    # with open(config_path, "r") as f:
-    #     config = json.load(f)
-    #
-    #     config["training"]["path"] = os.path.join("speech_denoising_wavenet", config["training"]["path"])
-    #     model = DenoisingWavenet(config, load_checkpoint=checkpoint_path)
-    #     start = time.time()
-    #     metrics, ref = evaluate_on_testset(dataset_path, model, max_files=None)
-    #     end = time.time()
-    #     print(end - start, " s")
-    #     print("ref: ")
-    #     print(ref)
-    #     print("pred: ")
-    #     print(metrics)
