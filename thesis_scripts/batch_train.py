@@ -1,6 +1,10 @@
 import json
 
-from speech_denoising_wavenet.main import training, get_command_line_arguments, load_config
+from speech_denoising_wavenet.main import (
+    training,
+    get_command_line_arguments,
+    load_config,
+)
 import os
 import copy
 import tensorflow as tf
@@ -34,7 +38,15 @@ def dilations_train():
 
 
 def loss_train(config):
-    losses = ["l1", "l2", "sdr", "spectrogram", "spectral_convergence", "weighted_spectrogram"]
+    losses = [
+        "l1",
+        "l2",
+        "sdr",
+        "spectrogram",
+        "spectral_convergence",
+        "weighted_spectrogram",
+    ]
+
     def set_weights_to_0(config):
         for loss in losses:
             for out in ["out_1", "out_2"]:
@@ -115,20 +127,22 @@ def dropout_train(config):
             config["model"]["dropout"]["use"] = True
             config["model"]["dropout"]["rate"] = rate
             config["dataset"]["path"] = f"data/final_datasets/general/vctk_{dataset}"
-            config["training"]["path"] = f"experiments/arch/dropout/vctk_{dataset}_{rate}"
+            config["training"][
+                "path"
+            ] = f"experiments/arch/dropout/vctk_{dataset}_{rate}"
             with open("./temp_config.json", "w") as f:
                 json.dump(obj=config, fp=f)
             subprocess.call(["python", "main.py", "--config", "temp_config.json"])
             print(f"{dataset} {rate} done")
 
 
-
 def reverb_train(config):
     for dataset in ["demand", "esc50", "fma", "art"]:
         config["dataset"]["path"] = f"data/final_datasets/reverb/vctk_{dataset}_reverb"
-        config["training"]["path"] = f"experiments/databased/reverb/vctk_{dataset}_reverb"
+        config["training"][
+            "path"
+        ] = f"experiments/databased/reverb/vctk_{dataset}_reverb"
         with open("./temp_config.json", "w") as f:
             json.dump(obj=config, fp=f)
         subprocess.call(["python", "main.py", "--config", "temp_config.json"])
         print(f"{dataset} done")
-

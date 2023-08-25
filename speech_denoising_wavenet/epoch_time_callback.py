@@ -18,4 +18,3 @@ class EpochTimeCallback(tf.keras.callbacks.Callback):
         record = pd.DataFrame(data=[{"times": timer() - self.starttime}])
         self.df = pd.concat([self.df, record])
         self.df.to_csv(os.path.join(self.dir, f"epoch_times.csv"), index=False)
-

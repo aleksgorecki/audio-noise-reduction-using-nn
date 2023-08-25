@@ -30,7 +30,7 @@ class MainWindow(QWidget):
 
 
 if __name__ == "__main__":
-    #os.chdir("../speech_denoising_wavenet")
+    # os.chdir("../speech_denoising_wavenet")
     app = QApplication(sys.argv)
     window = MainWindow(window_name="Inference GUI")
     window.show()

@@ -2,8 +2,8 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-class LossPlotCallback(tf.keras.callbacks.Callback):
 
+class LossPlotCallback(tf.keras.callbacks.Callback):
     def __init__(self, fname):
         super().__init__()
         self.loss = []
@@ -23,9 +23,9 @@ class LossPlotCallback(tf.keras.callbacks.Callback):
         axs[0].set_title("Loss")
         axs[1].plot(self.epochs, self.val_loss, color="b")
         axs[1].set_title("Val Loss")
-    
+
         for ax in axs.flat:
-            ax.set(xlabel='Epoch', ylabel='Loss')
+            ax.set(xlabel="Epoch", ylabel="Loss")
             ax.grid(visible=True)
             ax.xaxis.set_major_locator(MultipleLocator(1))
 

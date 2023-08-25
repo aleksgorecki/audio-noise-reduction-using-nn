@@ -1,5 +1,9 @@
 import os
-from custom_model_evaluation import get_best_checkpoint, evaluate_on_testset, prepare_batch
+from custom_model_evaluation import (
+    get_best_checkpoint,
+    evaluate_on_testset,
+    prepare_batch,
+)
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet.main import load_config
 import numpy as np
@@ -8,7 +12,10 @@ import matplotlib.pyplot as plt
 from datasets.visual import plot_spectrogram
 import soundfile as sf
 
-def plot_waveform(data, fs, title=None, show=True, save_path=None, fig=None, ax=None, eng=False):
+
+def plot_waveform(
+    data, fs, title=None, show=True, save_path=None, fig=None, ax=None, eng=False
+):
     if fig is None or ax is None:
         fig, ax = plt.subplots()
     librosa.display.waveshow(y=data, sr=fs, ax=ax)

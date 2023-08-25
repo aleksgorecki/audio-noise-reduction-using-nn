@@ -59,11 +59,15 @@ def l1_l2_power_loss(y_true, y_pred, l1_weight, l2_weight):
 
     if l1_weight != 0:
         loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
-        loss += l1_weight * tf.keras.losses.mean_absolute_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(
+            tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred))
+        )
 
     if l2_weight != 0:
         loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
-        loss += l2_weight * tf.keras.losses.mean_squared_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+        loss += l2_weight * tf.keras.losses.mean_squared_error(
+            tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred))
+        )
 
     return loss
 
@@ -76,12 +80,16 @@ def l1_l2_combined_power_loss(y_true, y_pred, l1_weight, l2_weight):
     if l1_weight != 0:
         loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true, y_pred)
         loss += l1_weight * tf.keras.losses.mean_absolute_error(y_true_fft, y_pred_fft)
-        loss += l1_weight * tf.keras.losses.mean_absolute_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+        loss += l1_weight * tf.keras.losses.mean_absolute_error(
+            tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred))
+        )
 
     if l2_weight != 0:
         loss += l2_weight * tf.keras.losses.mean_squared_error(y_true, y_pred)
         loss += l2_weight * tf.keras.losses.mean_squared_error(y_true_fft, y_pred_fft)
-        loss += l2_weight * tf.keras.losses.mean_squared_error(tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred)))
+        loss += l2_weight * tf.keras.losses.mean_squared_error(
+            tf.square(tf.abs(y_true)), tf.square(tf.abs(y_pred))
+        )
 
     return loss
 
@@ -122,7 +130,9 @@ def l1_l2_combined_power_loss(y_true, y_pred, l1_weight, l2_weight):
 #     )
 
 
-def compute_receptive_field_length(stacks, dilations, filter_length, target_field_length):
+def compute_receptive_field_length(
+    stacks, dilations, filter_length, target_field_length
+):
     half_filter_length = (filter_length - 1) / 2
     length = 0
     for d in dilations:
@@ -144,25 +154,25 @@ def wav_to_float(x):
     except:
         max_value = np.finfo(x.dtype).max
         min_value = np.finfo(x.dtype).min
-    x = x.astype('float64', casting='safe')
+    x = x.astype("float64", casting="safe")
     x -= min_value
-    x /= ((max_value - min_value) / 2.)
-    x -= 1.
+    x /= (max_value - min_value) / 2.0
+    x -= 1.0
     return x
 
 
 def float_to_uint8(x):
-    x += 1.
-    x /= 2.
-    uint8_max_value = np.iinfo('uint8').max
+    x += 1.0
+    x /= 2.0
+    uint8_max_value = np.iinfo("uint8").max
     x *= uint8_max_value
-    x = x.astype('uint8')
+    x = x.astype("uint8")
     return x
 
 
 def keras_float_to_uint8(x):
-    x += 1.
-    x /= 2.
+    x += 1.0
+    x /= 2.0
     uint8_max_value = 255
     x *= uint8_max_value
     return x
@@ -174,17 +184,20 @@ def linear_to_ulaw(x, u=255):
 
 
 def keras_linear_to_ulaw(x, u=255.0):
-    x = tf.keras.backend.sign(x) * (tf.keras.backend.log(1 + u * tf.keras.backend.abs(x)) / tf.keras.backend.log(1 + u))
+    x = tf.keras.backend.sign(x) * (
+        tf.keras.backend.log(1 + u * tf.keras.backend.abs(x))
+        / tf.keras.backend.log(1 + u)
+    )
     return x
 
 
 def uint8_to_float(x):
-    max_value = np.iinfo('uint8').max
-    min_value = np.iinfo('uint8').min
-    x = x.astype('float32', casting='unsafe')
+    max_value = np.iinfo("uint8").max
+    min_value = np.iinfo("uint8").min
+    x = x.astype("float32", casting="unsafe")
     x -= min_value
-    x /= ((max_value - min_value) / 2.)
-    x -= 1.
+    x /= (max_value - min_value) / 2.0
+    x -= 1.0
     return x
 
 
@@ -192,8 +205,8 @@ def keras_uint8_to_float(x):
     max_value = 255
     min_value = 0
     x -= min_value
-    x /= ((max_value - min_value) / 2.)
-    x -= 1.
+    x /= (max_value - min_value) / 2.0
+    x -= 1.0
     return x
 
 
@@ -212,7 +225,7 @@ def one_hot_encode(x, num_values=256):
         x = np.array([x])
     if isinstance(x, list):
         x = np.array(x)
-    return np.eye(num_values, dtype='uint8')[x.astype('uint8')]
+    return np.eye(num_values, dtype="uint8")[x.astype("uint8")]
 
 
 def one_hot_decode(x):
@@ -233,7 +246,7 @@ def binary_encode(x, max_value):
 
 
 def get_condition_input_encode_func(representation):
-    if representation == 'binary':
+    if representation == "binary":
         return binary_encode
     else:
         return one_hot_encode
@@ -251,9 +264,15 @@ def get_subdict_from_dict(keys, dictionary):
 
 def pretty_json_dump(values, file_path=None):
     if file_path is None:
-        print(json.dumps(values, sort_keys=True, indent=4, separators=(',', ': ')))
+        print(json.dumps(values, sort_keys=True, indent=4, separators=(",", ": ")))
     else:
-        json.dump(values, open(file_path, 'w'), sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(
+            values,
+            open(file_path, "w"),
+            sort_keys=True,
+            indent=4,
+            separators=(",", ": "),
+        )
 
 
 def read_wav(filename):
@@ -264,7 +283,7 @@ def read_wav(filename):
     if audio_signal.ndim > 1:
         audio_signal = audio_signal[:, 0]
 
-    if audio_signal.dtype != 'float64':
+    if audio_signal.dtype != "float64":
         audio_signal = wav_to_float(audio_signal)
 
     return audio_signal, sample_rate
@@ -307,9 +326,9 @@ def get_subsequence_with_speech_indices(full_sequence):
 
     chunks_energies = []
     for i in range(0, len(signal_magnitude), chunk_length):
-        chunks_energies.append(np.mean(signal_magnitude[i:i + chunk_length]))
+        chunks_energies.append(np.mean(signal_magnitude[i : i + chunk_length]))
 
-    threshold = np.max(chunks_energies) * .1
+    threshold = np.max(chunks_energies) * 0.1
 
     onset_chunk_i = 0
     for i in range(0, len(chunks_energies)):
@@ -325,18 +344,20 @@ def get_subsequence_with_speech_indices(full_sequence):
 
     num_pad_chunks = 4
     onset_chunk_i = np.max((0, onset_chunk_i - num_pad_chunks))
-    termination_chunk_i = np.min((len(chunks_energies), termination_chunk_i + num_pad_chunks))
+    termination_chunk_i = np.min(
+        (len(chunks_energies), termination_chunk_i + num_pad_chunks)
+    )
 
     return [onset_chunk_i * chunk_length, (termination_chunk_i + 1) * chunk_length]
 
 
 def extract_subsequence_with_speech(full_sequence):
     indices = get_subsequence_with_speech_indices(full_sequence)
-    return full_sequence[indices[0]:indices[1]]
+    return full_sequence[indices[0] : indices[1]]
 
 
 def dir_contains_files(path):
     for f in os.listdir(path):
-        if not f.startswith('.'):
+        if not f.startswith("."):
             return True
     return False
