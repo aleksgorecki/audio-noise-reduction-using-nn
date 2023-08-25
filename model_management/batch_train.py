@@ -17,7 +17,7 @@ def reset_tf_keras():
     _ = gc.collect()
 
 
-base_config = load_config("base_config.json")
+base_config = load_config("../thesis_scripts/base_config.json")
 
 os.chdir("../speech_denoising_wavenet")
 

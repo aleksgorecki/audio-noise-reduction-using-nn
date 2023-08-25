@@ -2,7 +2,7 @@ import os
 
 import pandas
 
-from custom_model_evaluation import (
+from model_management.evaluation import (
     get_best_checkpoint,
     evaluate_on_testset,
     prepare_batch,

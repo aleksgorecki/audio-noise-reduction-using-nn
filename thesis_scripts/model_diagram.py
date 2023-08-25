@@ -1,9 +1,7 @@
 import os
-from custom_model_evaluation import get_best_checkpoint, evaluate_on_testset
+from model_management.evaluation import get_best_checkpoint
 from speech_denoising_wavenet.models import DenoisingWavenet
 from speech_denoising_wavenet.main import load_config
-import matplotlib.pyplot as plt
-import visualkeras
 import tensorflow as tf
 
 model_path = "../speech_denoising_wavenet/experiments/arch/dropout/vctk_demand_0.1"

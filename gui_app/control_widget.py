@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import pyqtSlot
 import pathlib
 from speech_denoising_wavenet.models import DenoisingWavenet
-from custom_model_evaluation import predict_example
+from model_management.evaluation import predict_example
 import librosa
 from visual_widget import VisualWidget
 
